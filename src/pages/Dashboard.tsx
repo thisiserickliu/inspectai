@@ -8,16 +8,17 @@ import {
   Tooltip, ResponsiveContainer, Cell
 } from 'recharts'
 import { useI18n } from '../i18n'
+import { lf } from '../utils/localize'
 import KPICard from '../components/common/KPICard'
 import StatusBadge from '../components/common/StatusBadge'
 import SeverityBadge from '../components/common/SeverityBadge'
 import {
   kpiData, inspectionTrendData, findingsBySeverity,
-  inspectionTasks, assets
+  inspectionTasks, assets, zones, inspectors
 } from '../data/mockData'
 
 export default function Dashboard() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const recentTasks = inspectionTasks.slice(0, 5)
   const topRiskAssets = [...assets].sort((a, b) => b.riskScore - a.riskScore).slice(0, 5)
 
@@ -42,6 +43,12 @@ export default function Dashboard() {
   const localizedFindingsBySeverity = findingsBySeverity.map(f => ({
     ...f,
     severityLabel: (t.severity as Record<string, string>)[f.severity.toLowerCase()] ?? f.severity,
+  }))
+
+  // Localize chart month labels
+  const localizedTrendData = inspectionTrendData.map(d => ({
+    ...d,
+    monthLabel: lf(locale, d as Record<string, unknown>, 'month'),
   }))
 
   return (
@@ -97,9 +104,9 @@ export default function Dashboard() {
             <span className="badge bg-blue-100 text-blue-700">{t.dashboard.thisWeek}: {kpiData.totalInspectionsThisWeek}</span>
           </div>
           <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={inspectionTrendData}>
+            <LineChart data={localizedTrendData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="monthLabel" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
               <Tooltip
                 contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
@@ -175,9 +182,9 @@ export default function Dashboard() {
                         {task.id}
                       </Link>
                     </td>
-                    <td className="px-3 py-3 text-sm text-gray-700 max-w-[160px] truncate">{task.asset}</td>
-                    <td className="px-3 py-3 text-sm text-gray-500">{task.zone}</td>
-                    <td className="px-3 py-3 text-sm text-gray-500">{task.assignedTo}</td>
+                    <td className="px-3 py-3 text-sm text-gray-700 max-w-[160px] truncate">{lf(locale, assets.find(a => a.id === task.assetId) as Record<string, unknown> ?? { name: task.asset }, 'name')}</td>
+                    <td className="px-3 py-3 text-sm text-gray-500">{lf(locale, zones.find(z => z.id === task.zoneId) as Record<string, unknown> ?? { name: task.zone }, 'name')}</td>
+                    <td className="px-3 py-3 text-sm text-gray-500">{lf(locale, inspectors.find(i => i.name === task.assignedTo) as Record<string, unknown> ?? { name: task.assignedTo }, 'name')}</td>
                     <td className="px-3 py-3 text-sm text-gray-500">{task.dueDate}</td>
                     <td className="px-3 py-3"><StatusBadge status={task.status} /></td>
                   </tr>
@@ -200,7 +207,7 @@ export default function Dashboard() {
               <Link to={`/assets/${asset.id}`} key={asset.id} className="block group">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-medium text-gray-800 group-hover:text-blue-600 transition-colors truncate max-w-[160px]">
-                    {asset.name}
+                    {lf(locale, asset as Record<string, unknown>, 'name')}
                   </span>
                   <span className={`text-sm font-bold ${
                     asset.riskScore >= 80 ? 'text-red-600' :

@@ -9,6 +9,7 @@ import FindingDetail from './pages/FindingDetail'
 import ReportDetail from './pages/ReportDetail'
 import MobileInspection from './pages/MobileInspection'
 import AIInsights from './pages/AIInsights'
+import Settings from './pages/Settings'
 import { LocaleContext, Locale, locales } from './i18n'
 
 export default function App() {
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="reports" element={<ReportDetail />} />
             <Route path="mobile" element={<MobileInspection />} />
             <Route path="ai-insights" element={<AIInsights />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
       </BrowserRouter>

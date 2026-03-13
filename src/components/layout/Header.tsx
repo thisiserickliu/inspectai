@@ -43,7 +43,7 @@ export default function Header() {
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
           >
             <Globe className="w-4 h-4" />
-            <span>{locale === 'en' ? 'EN' : locale === 'zh-TW' ? '繁中' : '日本語'}</span>
+            <span>{locale === 'zh-TW' ? t.languages.zhTW : t.languages[locale as 'en' | 'ja']}</span>
             <ChevronDown className="w-3 h-3" />
           </button>
           {showLangMenu && (
@@ -107,7 +107,7 @@ export default function Header() {
             <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center">
               <User className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="text-sm font-medium text-gray-700">Wei-Ming</span>
+            <span className="text-sm font-medium text-gray-700">{t.user.name}</span>
             <ChevronDown className="w-3 h-3 text-gray-400" />
           </button>
           {showProfile && (

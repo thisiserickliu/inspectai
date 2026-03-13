@@ -2,16 +2,21 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronRight, Brain, Camera, Send, AlertTriangle, ArrowRight } from 'lucide-react'
 import { useI18n } from '../i18n'
+import { lf, teamKey } from '../utils/localize'
 import StatusBadge from '../components/common/StatusBadge'
 import SeverityBadge from '../components/common/SeverityBadge'
-import { findings } from '../data/mockData'
+import { findings, assets, zones, plants, inspectors } from '../data/mockData'
 
 const FINDING = findings[0]
 
 const statusOptions = ['open', 'pending', 'inProgress', 'resolved', 'closed']
 
 export default function FindingDetail() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
+  const asset = assets.find(a => a.id === FINDING.assetId)
+  const zone = asset ? zones.find(z => z.id === asset.zoneId) : null
+  const plant = zone ? plants.find(p => p.id === zone.plantId) : null
+  const inspector = inspectors.find(i => i.name === FINDING.inspector)
   const [comment, setComment] = useState('')
   const [selectedStatus, setSelectedStatus] = useState(FINDING.status)
 
@@ -21,10 +26,10 @@ export default function FindingDetail() {
   const categoryLabel = (cat: string) => (t.findingCategory as Record<string, string>)[cat] ?? cat
 
   const activities = [
-    { id: 1, user: 'Wang Mei-Ling', action: 'findingCreated', time: '2024-03-10 09:32', detail: '', avatar: 'WM' },
-    { id: 2, user: 'Wang Mei-Ling', action: 'photoAdded', time: '2024-03-10 09:45', detail: t.notif.n1, avatar: 'WM' },
-    { id: 3, user: 'Chen Wei-Ming', action: 'commented', time: '2024-03-10 11:20', detail: t.timeline.activityComment1, avatar: 'CW' },
-    { id: 4, user: 'Liu Kuo-Cheng', action: 'statusChanged', time: '2024-03-11 08:00', detail: t.timeline.activityStatus1, avatar: 'LK' },
+    { id: 1, user: t.reportContent.inspectorWangMeiLing, action: 'findingCreated', time: '2024-03-10 09:32', detail: '', avatar: 'WM' },
+    { id: 2, user: t.reportContent.inspectorWangMeiLing, action: 'photoAdded', time: '2024-03-10 09:45', detail: t.notif.n1, avatar: 'WM' },
+    { id: 3, user: t.user.fullName, action: 'commented', time: '2024-03-10 11:20', detail: t.timeline.activityComment1, avatar: 'CW' },
+    { id: 4, user: t.reportContent.inspectorLiuKuoCheng, action: 'statusChanged', time: '2024-03-11 08:00', detail: t.timeline.activityStatus1, avatar: 'LK' },
   ]
 
   const steps = [t.findingAI.step1, t.findingAI.step2, t.findingAI.step3, t.findingAI.step4]
@@ -43,7 +48,7 @@ export default function FindingDetail() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <AlertTriangle className={`w-5 h-5 ${severityColor(FINDING.severity)}`} />
-            <h1 className="text-xl font-bold text-gray-900">{FINDING.title}</h1>
+            <h1 className="text-xl font-bold text-gray-900">{lf(locale, FINDING as Record<string, unknown>, 'title')}</h1>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm text-gray-500 font-mono">{FINDING.id}</span>
@@ -64,14 +69,14 @@ export default function FindingDetail() {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {[
                 { label: t.findingDetail.findingId, value: FINDING.id },
-                { label: t.asset, value: FINDING.asset },
-                { label: t.component, value: FINDING.component },
-                { label: t.plant, value: FINDING.plant },
-                { label: t.zone, value: FINDING.zone },
-                { label: t.inspector, value: FINDING.inspector },
+                { label: t.asset, value: asset ? lf(locale, asset as Record<string, unknown>, 'name') : FINDING.asset },
+                { label: t.component, value: lf(locale, FINDING as Record<string, unknown>, 'component') },
+                { label: t.plant, value: plant ? lf(locale, plant as Record<string, unknown>, 'name') : FINDING.plant },
+                { label: t.zone, value: zone ? lf(locale, zone as Record<string, unknown>, 'name') : FINDING.zone },
+                { label: t.inspector, value: inspector ? lf(locale, inspector as Record<string, unknown>, 'name') : FINDING.inspector },
                 { label: t.discoveryDate, value: FINDING.discoveryDate },
                 { label: t.dueDate, value: FINDING.dueDate },
-                { label: t.owner, value: FINDING.owner },
+                { label: t.owner, value: (t.teams as Record<string, string>)[teamKey(FINDING.owner)] ?? FINDING.owner },
               ].map((item, i) => (
                 <div key={i}>
                   <p className="text-xs text-gray-500">{item.label}</p>
@@ -85,15 +90,15 @@ export default function FindingDetail() {
           <div className="card p-5 space-y-4">
             <div>
               <h3 className="text-sm font-semibold text-gray-900 mb-2">{t.findingDetail.description}</h3>
-              <p className="text-sm text-gray-700 leading-relaxed">{FINDING.description}</p>
+              <p className="text-sm text-gray-700 leading-relaxed">{lf(locale, FINDING as Record<string, unknown>, 'description')}</p>
             </div>
             <div className="border-t border-gray-100 pt-4">
               <h3 className="text-sm font-semibold text-gray-900 mb-2">{t.findingDetail.impact}</h3>
-              <p className="text-sm text-gray-700 leading-relaxed">{FINDING.impact}</p>
+              <p className="text-sm text-gray-700 leading-relaxed">{lf(locale, FINDING as Record<string, unknown>, 'impact')}</p>
             </div>
             <div className="border-t border-gray-100 pt-4">
               <h3 className="text-sm font-semibold text-gray-900 mb-2">{t.findingDetail.riskDescription}</h3>
-              <p className="text-sm text-gray-700 leading-relaxed">{FINDING.riskDescription}</p>
+              <p className="text-sm text-gray-700 leading-relaxed">{lf(locale, FINDING as Record<string, unknown>, 'riskDescription')}</p>
             </div>
           </div>
 
@@ -101,11 +106,11 @@ export default function FindingDetail() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div className="card p-5">
               <h3 className="text-sm font-semibold text-gray-900 mb-2">{t.execution.probableCause}</h3>
-              <p className="text-sm text-gray-700 leading-relaxed">{FINDING.probableCause}</p>
+              <p className="text-sm text-gray-700 leading-relaxed">{lf(locale, FINDING as Record<string, unknown>, 'probableCause')}</p>
             </div>
             <div className="card p-5">
               <h3 className="text-sm font-semibold text-gray-900 mb-2">{t.execution.recommendedAction}</h3>
-              <p className="text-sm text-gray-700 leading-relaxed">{FINDING.recommendedAction}</p>
+              <p className="text-sm text-gray-700 leading-relaxed">{lf(locale, FINDING as Record<string, unknown>, 'recommendedAction')}</p>
             </div>
           </div>
 
@@ -233,8 +238,8 @@ export default function FindingDetail() {
           <div className="card p-5">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">{t.findingDetail.relatedAsset}</h3>
             <Link to="/assets/A003" className="block p-3 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors group">
-              <p className="text-sm font-medium text-gray-900 group-hover:text-blue-700">{FINDING.asset}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{FINDING.zone} · {FINDING.plant}</p>
+              <p className="text-sm font-medium text-gray-900 group-hover:text-blue-700">{asset ? lf(locale, asset as Record<string, unknown>, 'name') : FINDING.asset}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{zone ? lf(locale, zone as Record<string, unknown>, 'name') : FINDING.zone} · {plant ? lf(locale, plant as Record<string, unknown>, 'name') : FINDING.plant}</p>
               <div className="flex items-center gap-2 mt-2">
                 <div className="flex-1 bg-gray-200 rounded-full h-1.5">
                   <div className="h-1.5 rounded-full bg-red-500" style={{ width: '88%' }}></div>

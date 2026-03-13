@@ -3,19 +3,12 @@ import { Link } from 'react-router-dom'
 import { ChevronRight, Brain, AlertTriangle, TrendingUp, Wrench, FileText, Settings, Clock } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useI18n } from '../i18n'
+import { lf, teamKey } from '../utils/localize'
 import StatusBadge from '../components/common/StatusBadge'
 import SeverityBadge from '../components/common/SeverityBadge'
 import { assets, components, findings, inspectionTasks, riskScoreTrend } from '../data/mockData'
 
 const ASSET = assets.find(a => a.id === 'A003')!
-
-const inspectionHistory = [
-  { id: 'IT-2024-0312', date: '2024-03-10', typeKey: 'followUp', inspector: 'Wang Mei-Ling', status: 'overdue', findings: 3 },
-  { id: 'IT-2024-0302', date: '2024-03-01', typeKey: 'routine', inspector: 'Wang Mei-Ling', status: 'submitted', findings: 3 },
-  { id: 'IT-2023-1105', date: '2023-12-01', typeKey: 'routine', inspector: 'Chen Wei-Ming', status: 'closed', findings: 1 },
-  { id: 'IT-2023-0904', date: '2023-09-15', typeKey: 'preventive', inspector: 'Wang Mei-Ling', status: 'closed', findings: 2 },
-  { id: 'IT-2023-0603', date: '2023-06-10', typeKey: 'annual', inspector: 'Lin Jia-Hao', status: 'closed', findings: 0 },
-]
 
 const assetFindings = findings.filter(f => f.assetId === 'A003')
 const assetComponents = components.filter(c => c.assetId === 'A003')
@@ -23,8 +16,16 @@ const assetComponents = components.filter(c => c.assetId === 'A003')
 type Tab = 'overview' | 'components' | 'history' | 'findings' | 'documents'
 
 export default function AssetDetail() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const [activeTab, setActiveTab] = useState<Tab>('overview')
+
+  const inspectionHistory = [
+    { id: 'IT-2024-0312', date: '2024-03-10', typeKey: 'followUp', inspector: t.reportContent.inspectorWangMeiLing, status: 'overdue', findings: 3 },
+    { id: 'IT-2024-0302', date: '2024-03-01', typeKey: 'routine', inspector: t.reportContent.inspectorWangMeiLing, status: 'submitted', findings: 3 },
+    { id: 'IT-2023-1105', date: '2023-12-01', typeKey: 'routine', inspector: t.reportContent.inspectorChenWeiMing, status: 'closed', findings: 1 },
+    { id: 'IT-2023-0904', date: '2023-09-15', typeKey: 'preventive', inspector: t.reportContent.inspectorWangMeiLing, status: 'closed', findings: 2 },
+    { id: 'IT-2023-0603', date: '2023-06-10', typeKey: 'annual', inspector: t.reportContent.inspectorLinJiaHao, status: 'closed', findings: 0 },
+  ]
 
   const assetTypeLabel = (type: string) => {
     const map: Record<string, string> = {
@@ -100,7 +101,7 @@ export default function AssetDetail() {
                 <Wrench className="w-7 h-7 text-blue-600" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{ASSET.name}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{lf(locale, ASSET as Record<string, unknown>, 'name')}</h1>
                 <p className="text-gray-500 mt-0.5">{t.assetDetail.idLabel}: <span className="font-mono text-gray-700">{ASSET.id}</span> · {assetTypeLabel(ASSET.type)}</p>
                 <div className="flex items-center gap-2 mt-2">
                   <StatusBadge status={ASSET.status.toLowerCase()} />
@@ -125,7 +126,7 @@ export default function AssetDetail() {
               </div>
               <div>
                 <p className="text-xs text-gray-500">{t.owner}</p>
-                <p className="text-sm font-medium text-gray-800 mt-0.5">{ASSET.owner}</p>
+                <p className="text-sm font-medium text-gray-800 mt-0.5">{(t.teams as Record<string, string>)[teamKey(ASSET.owner)] ?? ASSET.owner}</p>
               </div>
             </div>
           </div>
@@ -192,7 +193,7 @@ export default function AssetDetail() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">{t.inspector}</p>
-                  <p className="text-sm font-medium text-gray-800 mt-0.5">Wang Mei-Ling</p>
+                  <p className="text-sm font-medium text-gray-800 mt-0.5">{t.reportContent.inspectorWangMeiLing}</p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">{t.type}</p>
@@ -217,9 +218,9 @@ export default function AssetDetail() {
             <div className="card p-5">
               <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.assetDetail.riskTrend}</h3>
               <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={riskScoreTrend}>
+                <LineChart data={riskScoreTrend.map(d => ({ ...d, dateLabel: lf(locale, d as Record<string, unknown>, 'date') }))}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false} />
+                  <XAxis dataKey="dateLabel" tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false} domain={[0, 100]} />
                   <Tooltip
                     contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
@@ -272,8 +273,8 @@ export default function AssetDetail() {
             <tbody className="divide-y divide-gray-100">
               {assetComponents.map(c => (
                 <tr key={c.id} className="hover:bg-gray-50">
-                  <td className="px-5 py-3.5 text-sm font-medium text-gray-800">{c.name}</td>
-                  <td className="px-3 py-3.5 text-sm text-gray-600">{c.type}</td>
+                  <td className="px-5 py-3.5 text-sm font-medium text-gray-800">{lf(locale, c as Record<string, unknown>, 'name')}</td>
+                  <td className="px-3 py-3.5 text-sm text-gray-600">{lf(locale, c as Record<string, unknown>, 'type')}</td>
                   <td className="px-3 py-3.5">
                     <span className={`badge ${conditionStyle(c.condition)}`}>{conditionLabel(c.condition)}</span>
                   </td>
@@ -326,7 +327,7 @@ export default function AssetDetail() {
       {activeTab === 'findings' && (
         <div className="card overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900">{t.findings} — {ASSET.name}</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{t.findings} — {lf(locale, ASSET as Record<string, unknown>, 'name')}</h3>
           </div>
           <table className="w-full">
             <thead>
@@ -346,7 +347,7 @@ export default function AssetDetail() {
                     <Link to={`/findings/${f.id}`} className="text-sm font-mono text-blue-600 hover:text-blue-700">{f.id}</Link>
                   </td>
                   <td className="px-3 py-3.5 text-sm text-gray-800 max-w-xs">
-                    <div className="truncate">{f.title}</div>
+                    <div className="truncate">{lf(locale, f as Record<string, unknown>, 'title')}</div>
                   </td>
                   <td className="px-3 py-3.5 text-sm text-gray-600">
                     {(t.findingCategory as Record<string, string>)[f.category] ?? f.category}

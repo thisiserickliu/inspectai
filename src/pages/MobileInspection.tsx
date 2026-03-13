@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { ArrowLeft, Wifi, WifiOff, CheckCircle, XCircle, AlertTriangle, Camera, Plus, ChevronDown, Send } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n'
+import { lf } from '../utils/localize'
 import { checklistItems } from '../data/mockData'
 
 type CheckResult = 'pass' | 'fail' | 'attention' | null
 
 export default function MobileInspection() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const [isOnline, setIsOnline] = useState(true)
   const [results, setResults] = useState<Record<string, CheckResult>>({})
   const [expandedNote, setExpandedNote] = useState<string | null>(null)
@@ -70,14 +71,14 @@ export default function MobileInspection() {
             <div className="flex items-start justify-between mb-2">
               <div>
                 <p className="text-xs text-blue-600 font-medium uppercase tracking-wide">{t.mobile.taskSummary}</p>
-                <p className="text-sm font-bold text-gray-900 mt-0.5">Cooling Pump CP-104</p>
+                <p className="text-sm font-bold text-gray-900 mt-0.5">{t.reportContent.coolingPumpCP104}</p>
                 <p className="text-xs text-gray-500">{t.reportContent.zoneUtilityRoom} · {t.reportContent.taoyuanPlant}</p>
               </div>
               <span className="badge bg-red-100 text-red-700 text-xs">{t.severity.critical}</span>
             </div>
             <div className="flex items-center justify-between text-xs mt-2">
               <span className="text-gray-500">{t.mobile.due} <span className="text-red-600 font-medium">2024-03-12</span></span>
-              <span className="text-gray-500">{t.mobile.inspectorShort} Wang M.</span>
+              <span className="text-gray-500">{t.mobile.inspectorShort} {t.reportContent.inspectorWangShort}</span>
             </div>
           </div>
 
@@ -109,7 +110,7 @@ export default function MobileInspection() {
                   'bg-gray-50 border-gray-200'
                 }`}
               >
-                <p className="text-sm font-medium text-gray-900 mb-2 leading-snug">{item.item}</p>
+                <p className="text-sm font-medium text-gray-900 mb-2 leading-snug">{lf(locale, item as Record<string, unknown>, 'item')}</p>
                 {/* Large touch targets */}
                 <div className="grid grid-cols-3 gap-1.5">
                   <button
