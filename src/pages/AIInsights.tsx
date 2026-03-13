@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Brain, AlertTriangle, TrendingUp, TrendingDown, Minus, ArrowRight, Info, ChevronDown, ChevronUp } from 'lucide-react'
 import { useI18n } from '../i18n'
+import { lf } from '../utils/localize'
 import SeverityBadge from '../components/common/SeverityBadge'
 import KPICard from '../components/common/KPICard'
 import { aiInsightsData } from '../data/mockData'
@@ -9,11 +10,11 @@ import { aiInsightsData } from '../data/mockData'
 type Section = 'anomalies' | 'recurring' | 'recommendations' | 'explainability'
 
 export default function AIInsights() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
 
   const explainabilityData = {
     flagId: 'ANO-001',
-    asset: 'Cooling Pump CP-104',
+    asset: t.reportContent.coolingPumpCP104,
     type: t.explainData.flagTitle,
     confidence: 94,
     whyFlagged: [t.explainData.reason1, t.explainData.reason2, t.explainData.reason3, t.explainData.reason4],
@@ -126,11 +127,11 @@ export default function AIInsights() {
                   }`} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <h3 className="text-sm font-semibold text-gray-900">{anomaly.asset}</h3>
+                      <h3 className="text-sm font-semibold text-gray-900">{lf(locale, anomaly as Record<string, unknown>, 'asset')}</h3>
                       <SeverityBadge severity={anomaly.severity} />
-                      <span className="badge bg-gray-100 text-gray-600 capitalize">{anomaly.type}</span>
+                      <span className="badge bg-gray-100 text-gray-600">{(t.findingCategory as Record<string, string>)[anomaly.type] ?? anomaly.type}</span>
                     </div>
-                    <p className="text-sm text-gray-600 leading-snug">{anomaly.description}</p>
+                    <p className="text-sm text-gray-600 leading-snug">{lf(locale, anomaly as Record<string, unknown>, 'description')}</p>
                     <div className="flex items-center gap-4 mt-3">
                       <div>
                         <p className="text-xs text-gray-500 mb-1">{t.aiInsights.confidence}</p>
@@ -170,7 +171,7 @@ export default function AIInsights() {
             <div key={issue.id} className="card p-5">
               <div className="flex items-start justify-between gap-4 mb-3">
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-900">{issue.title}</h3>
+                  <h3 className="text-sm font-semibold text-gray-900">{lf(locale, issue as Record<string, unknown>, 'title')}</h3>
                   <div className="flex items-center gap-2 mt-1">
                     {trendIcon(issue.trend)}
                     {trendLabel(issue.trend)}
@@ -179,12 +180,12 @@ export default function AIInsights() {
                   </div>
                 </div>
               </div>
-              <p className="text-sm text-gray-600 mb-4">{issue.description}</p>
+              <p className="text-sm text-gray-600 mb-4">{lf(locale, issue as Record<string, unknown>, 'description')}</p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-gray-100">
                 <div>
                   <p className="text-xs text-gray-500">{t.aiInsights.affectedAssets}</p>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {issue.affectedAssets.map(a => (
+                    {(locale === 'zh-TW' ? issue.affectedAssetsZh : locale === 'ja' ? issue.affectedAssetsJa : issue.affectedAssets).map(a => (
                       <span key={a} className="badge bg-blue-50 text-blue-700">{a}</span>
                     ))}
                   </div>
@@ -215,11 +216,11 @@ export default function AIInsights() {
                 <div className="flex items-start gap-3">
                   <SeverityBadge severity={rec.priority} className="flex-shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">{rec.recommendation}</p>
+                    <p className="text-sm font-medium text-gray-900">{lf(locale, rec as Record<string, unknown>, 'recommendation')}</p>
                     <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                      <span className="text-xs text-gray-500">{rec.asset}</span>
+                      <span className="text-xs text-gray-500">{lf(locale, rec as Record<string, unknown>, 'asset')}</span>
                       <span className="text-gray-300">·</span>
-                      <span className="text-xs text-gray-500">{rec.zone}</span>
+                      <span className="text-xs text-gray-500">{lf(locale, rec as Record<string, unknown>, 'zone')}</span>
                       <span className="text-gray-300">·</span>
                       <span className="text-xs text-gray-500">{t.aiInsights.confidence}: <strong className="text-gray-700">{rec.confidence}%</strong></span>
                     </div>
@@ -230,7 +231,7 @@ export default function AIInsights() {
               {expandedRec === rec.id && (
                 <div className="px-5 pb-5 border-t border-gray-100 pt-3 bg-gray-50">
                   <p className="text-xs font-medium text-gray-700 mb-1.5">{t.aiInsights.suggestedAction}</p>
-                  <p className="text-sm text-gray-700 bg-white border border-gray-200 rounded-lg p-3">{rec.suggestedAction}</p>
+                  <p className="text-sm text-gray-700 bg-white border border-gray-200 rounded-lg p-3">{lf(locale, rec as Record<string, unknown>, 'suggestedAction')}</p>
                   <div className="mt-3">
                     <p className="text-xs text-gray-500 mb-1">{t.aiInsights.confidence}</p>
                     <div className="flex items-center gap-2">

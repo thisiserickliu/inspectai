@@ -2,14 +2,15 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Search, Plus, Play, Edit2, ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react'
 import { useI18n } from '../i18n'
+import { lf } from '../utils/localize'
 import StatusBadge from '../components/common/StatusBadge'
 import SeverityBadge from '../components/common/SeverityBadge'
-import { inspectionTasks, plants, zones, inspectors } from '../data/mockData'
+import { inspectionTasks, plants, zones, assets, inspectors } from '../data/mockData'
 
 const ITEMS_PER_PAGE = 10
 
 export default function InspectionTasks() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const [search, setSearch] = useState('')
   const [filterPlant, setFilterPlant] = useState('')
   const [filterZone, setFilterZone] = useState('')
@@ -85,7 +86,7 @@ export default function InspectionTasks() {
             className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           >
             <option value="">{t.tasks.allPlants}</option>
-            {plants.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            {plants.map(p => <option key={p.id} value={p.id}>{lf(locale, p as Record<string, unknown>, 'name')}</option>)}
           </select>
 
           {/* Zone */}
@@ -96,7 +97,7 @@ export default function InspectionTasks() {
           >
             <option value="">{t.tasks.allZones}</option>
             {zones.filter(z => !filterPlant || z.plantId === filterPlant).map(z => (
-              <option key={z.id} value={z.id}>{z.name}</option>
+              <option key={z.id} value={z.id}>{lf(locale, z as Record<string, unknown>, 'name')}</option>
             ))}
           </select>
 
@@ -158,13 +159,13 @@ export default function InspectionTasks() {
                   <td className="px-5 py-3.5">
                     <span className="text-sm font-mono font-semibold text-blue-600">{task.id}</span>
                   </td>
-                  <td className="px-3 py-3.5 text-sm text-gray-700 whitespace-nowrap">{task.plant}</td>
-                  <td className="px-3 py-3.5 text-sm text-gray-600 whitespace-nowrap">{task.zone}</td>
+                  <td className="px-3 py-3.5 text-sm text-gray-700 whitespace-nowrap">{lf(locale, plants.find(p => p.id === task.plantId) as Record<string, unknown> ?? { name: task.plant }, 'name')}</td>
+                  <td className="px-3 py-3.5 text-sm text-gray-600 whitespace-nowrap">{lf(locale, zones.find(z => z.id === task.zoneId) as Record<string, unknown> ?? { name: task.zone }, 'name')}</td>
                   <td className="px-3 py-3.5 text-sm text-gray-700 max-w-[160px]">
-                    <div className="truncate">{task.asset}</div>
+                    <div className="truncate">{lf(locale, assets.find(a => a.id === task.assetId) as Record<string, unknown> ?? { name: task.asset }, 'name')}</div>
                   </td>
                   <td className="px-3 py-3.5 text-sm text-gray-600 whitespace-nowrap">{typeLabel(task.type)}</td>
-                  <td className="px-3 py-3.5 text-sm text-gray-600 whitespace-nowrap">{task.assignedTo}</td>
+                  <td className="px-3 py-3.5 text-sm text-gray-600 whitespace-nowrap">{lf(locale, inspectors.find(i => i.name === task.assignedTo) as Record<string, unknown> ?? { name: task.assignedTo }, 'name')}</td>
                   <td className="px-3 py-3.5 text-sm text-gray-600 whitespace-nowrap">
                     <span className={task.status === 'overdue' ? 'text-red-600 font-medium' : ''}>{task.dueDate}</span>
                   </td>

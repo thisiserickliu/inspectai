@@ -57,7 +57,7 @@ export default function Sidebar() {
             <User className="w-4 h-4 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">Chen Wei-Ming</p>
+            <p className="text-sm font-medium text-white truncate">{t.user.fullName}</p>
             <p className="text-xs text-slate-400 truncate">{t.user.role}</p>
           </div>
         </div>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronRight, Camera, Plus, AlertTriangle, CheckCircle, XCircle, MinusCircle, Save, Send, X } from 'lucide-react'
 import { useI18n } from '../i18n'
+import { lf } from '../utils/localize'
 import SeverityBadge from '../components/common/SeverityBadge'
 import { checklistItems, findings } from '../data/mockData'
 
@@ -13,7 +14,7 @@ const categories = ['leakage', 'corrosion', 'overheating', 'vibration', 'surface
 const taskFindings = findings.filter(f => f.taskId === 'IT-2024-0302')
 
 export default function InspectionExecution() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const [results, setResults] = useState<Record<string, CheckResult>>({})
   const [notes, setNotes] = useState<Record<string, string>>({})
   const [expandedNote, setExpandedNote] = useState<string | null>(null)
@@ -55,10 +56,10 @@ export default function InspectionExecution() {
               <ChevronRight className="w-3 h-3" />
               <span>{t.reportContent.zoneUtilityRoom}</span>
               <ChevronRight className="w-3 h-3" />
-              <span>Cooling Pump CP-104</span>
+              <span>{t.reportContent.coolingPumpCP104}</span>
             </nav>
             <h1 className="text-lg font-semibold text-gray-900">{t.execution.title}</h1>
-            <p className="text-xs text-gray-500 mt-0.5">{t.execution.inspectorLabel}: Wang Mei-Ling · {t.execution.scheduledLabel}: 2024-03-01</p>
+            <p className="text-xs text-gray-500 mt-0.5">{t.execution.inspectorLabel}: {t.reportContent.inspectorWangMeiLing} · {t.execution.scheduledLabel}: 2024-03-01</p>
           </div>
           <div className="flex items-center gap-4">
             {/* Progress */}
@@ -90,10 +91,10 @@ export default function InspectionExecution() {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {[
                   { label: t.execution.taskIdLabel, value: 'IT-2024-0302' },
-                  { label: t.asset, value: 'Cooling Pump CP-104' },
+                  { label: t.asset, value: t.reportContent.coolingPumpCP104 },
                   { label: t.plant, value: t.reportContent.taoyuanPlant },
                   { label: t.zone, value: t.reportContent.zoneUtilityRoom },
-                  { label: t.execution.inspectorLabel, value: 'Wang Mei-Ling' },
+                  { label: t.execution.inspectorLabel, value: t.reportContent.inspectorWangMeiLing },
                   { label: t.tasks.inspectionType, value: t.tasks.types.routine },
                   { label: t.tasks.scheduledDate, value: '2024-03-01' },
                   { label: t.riskLevel, value: <SeverityBadge severity="critical" /> },
@@ -128,8 +129,8 @@ export default function InspectionExecution() {
                          <MinusCircle className="w-4 h-4 text-gray-400" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">{item.item}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>
+                        <p className="text-sm font-medium text-gray-900">{lf(locale, item as Record<string, unknown>, 'item')}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{lf(locale, item as Record<string, unknown>, 'description')}</p>
                         <div className="flex items-center gap-2 mt-2">
                           {resultBtn(item.id, 'pass', <CheckCircle className="w-3.5 h-3.5" />, t.execution.pass, 'bg-green-100 text-green-700')}
                           {resultBtn(item.id, 'attention', <AlertTriangle className="w-3.5 h-3.5" />, t.execution.attention, 'bg-yellow-100 text-yellow-700')}
@@ -203,11 +204,11 @@ export default function InspectionExecution() {
                     }`} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm font-medium text-gray-900">{f.title}</p>
+                        <p className="text-sm font-medium text-gray-900">{lf(locale, f as Record<string, unknown>, 'title')}</p>
                         <SeverityBadge severity={f.severity} />
                         <span className="badge bg-gray-100 text-gray-600 capitalize">{categoryLabel(f.category)}</span>
                       </div>
-                      <p className="text-xs text-gray-500 mt-0.5 truncate">{f.description}</p>
+                      <p className="text-xs text-gray-500 mt-0.5 truncate">{lf(locale, f as Record<string, unknown>, 'description')}</p>
                     </div>
                     <Link to={`/findings/${f.id}`} className="text-xs text-blue-600 hover:text-blue-700 flex-shrink-0">{t.viewDetails}</Link>
                   </div>

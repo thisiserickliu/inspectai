@@ -1,15 +1,17 @@
 import { FileText, Download, Printer, Brain, CheckCircle, AlertTriangle, Table } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { useI18n } from '../i18n'
+import { lf } from '../utils/localize'
 import SeverityBadge from '../components/common/SeverityBadge'
-import { reports, findings } from '../data/mockData'
+import { reports, findings, assets, plants } from '../data/mockData'
 
 const REPORT = reports[0]
 
 const reportFindings = findings.filter(f => f.plant === 'Taoyuan Plant')
 
 export default function ReportDetail() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
+  const reportPlant = plants.find(p => p.id === REPORT.plantId)
 
   const correctiveActions = [
     { id: 'CA-001', finding: 'FD-2024-0089', action: t.reportContent.ca1Action, priority: 'critical', deadline: '2024-03-15', responsible: t.teams.mechanical, status: 'open' },
@@ -43,10 +45,10 @@ export default function ReportDetail() {
   ]
 
   const nextInspections = [
-    { asset: 'Cooling Pump CP-104', date: '2024-03-15', type: t.reportContent.nextType1, priority: 'critical' },
-    { asset: 'Electrical Panel EP-011', date: '2024-03-18', type: t.reportContent.nextType2, priority: 'critical' },
-    { asset: 'Air Compressor AC-201', date: '2024-04-08', type: t.reportContent.nextType3, priority: 'high' },
-    { asset: 'Mixing Tank MT-220', date: '2024-04-06', type: t.reportContent.nextType4, priority: 'medium' },
+    { asset: t.reportContent.coolingPumpCP104, date: '2024-03-15', type: t.reportContent.nextType1, priority: 'critical' },
+    { asset: t.reportContent.electricalPanelEP011, date: '2024-03-18', type: t.reportContent.nextType2, priority: 'critical' },
+    { asset: t.reportContent.airCompressorAC201, date: '2024-04-08', type: t.reportContent.nextType3, priority: 'high' },
+    { asset: t.reportContent.mixingTankMT220, date: '2024-04-06', type: t.reportContent.nextType4, priority: 'medium' },
   ]
 
   return (
@@ -99,8 +101,8 @@ export default function ReportDetail() {
             {[
               { label: t.reportDetail.reportId, value: REPORT.id },
               { label: t.reportDetail.generatedDate, value: REPORT.generatedDate },
-              { label: t.plant, value: REPORT.plant },
-              { label: t.reportDetail.period, value: REPORT.period },
+              { label: t.plant, value: reportPlant ? lf(locale, reportPlant as Record<string, unknown>, 'name') : REPORT.plant },
+              { label: t.reportDetail.period, value: lf(locale, REPORT as Record<string, unknown>, 'period') },
             ].map((item, i) => (
               <div key={i}>
                 <p className="text-xs text-blue-300 uppercase tracking-wide">{item.label}</p>
@@ -120,8 +122,8 @@ export default function ReportDetail() {
               <table className="w-full text-sm">
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { label: t.reportDetail.preparedBy, value: REPORT.preparedBy },
-                    { label: t.reportDetail.approvedBy, value: REPORT.approvedBy },
+                    { label: t.reportDetail.preparedBy, value: lf(locale, REPORT as Record<string, unknown>, 'preparedBy') },
+                    { label: t.reportDetail.approvedBy, value: lf(locale, REPORT as Record<string, unknown>, 'approvedBy') },
                     { label: t.reportDetail.reportStatus, value: (t.status as Record<string, string>)[REPORT.status.toLowerCase()] ?? REPORT.status },
                     { label: t.reportDetail.totalAssetsInspected, value: REPORT.totalAssetsInspected.toString() },
                     { label: t.reportDetail.totalFindings, value: Object.values(REPORT.findings).reduce((a, b) => a + b, 0).toString() },
@@ -219,9 +221,9 @@ export default function ReportDetail() {
                     <tr key={f.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-3 font-mono text-xs text-blue-600">{f.id}</td>
                       <td className="px-4 py-3 text-gray-800 max-w-xs">
-                        <div className="truncate">{f.title}</div>
+                        <div className="truncate">{lf(locale, f as Record<string, unknown>, 'title')}</div>
                       </td>
-                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{f.asset}</td>
+                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{lf(locale, assets.find(a => a.id === f.assetId) as Record<string, unknown> ?? { name: f.asset }, 'name')}</td>
                       <td className="px-4 py-3"><SeverityBadge severity={f.severity} /></td>
                       <td className="px-4 py-3 text-gray-600">
                         {(t.findingCategory as Record<string, string>)[f.category] ?? f.category}
