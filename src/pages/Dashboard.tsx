@@ -1,25 +1,21 @@
 import { Link } from 'react-router-dom'
 import {
-  ClipboardList, AlertTriangle, Factory, Clock,
-  Brain, Info, ArrowRight, TrendingUp, TrendingDown
-} from 'lucide-react'
-import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, Cell
+  Tooltip, ResponsiveContainer, Cell, ReferenceLine,
 } from 'recharts'
 import { useI18n } from '../i18n'
 import { lf } from '../utils/localize'
 import KPICard from '../components/common/KPICard'
 import StatusBadge from '../components/common/StatusBadge'
-import SeverityBadge from '../components/common/SeverityBadge'
 import {
   kpiData, inspectionTrendData, findingsBySeverity,
-  inspectionTasks, assets, zones, inspectors
+  inspectionTasks, assets, zones, inspectors,
 } from '../data/mockData'
+import { Download, Plus } from 'lucide-react'
 
 export default function Dashboard() {
   const { t, locale } = useI18n()
-  const recentTasks = inspectionTasks.slice(0, 5)
+  const recentTasks   = inspectionTasks.slice(0, 5)
   const topRiskAssets = [...assets].sort((a, b) => b.riskScore - a.riskScore).slice(0, 5)
 
   const assetTypeLabel = (type: string) => {
@@ -33,160 +29,211 @@ export default function Dashboard() {
   }
 
   const aiInsights = [
-    { id: 1, severity: 'critical' as const, text: t.dashboardAI.insight1, confidence: 94, border: 'border-l-red-500', bg: 'bg-red-50' },
-    { id: 2, severity: 'critical' as const, text: t.dashboardAI.insight2, confidence: 98, border: 'border-l-red-500', bg: 'bg-red-50' },
-    { id: 3, severity: 'high' as const, text: t.dashboardAI.insight3, confidence: 79, border: 'border-l-orange-500', bg: 'bg-orange-50' },
-    { id: 4, severity: 'high' as const, text: t.dashboardAI.insight4, confidence: 82, border: 'border-l-orange-500', bg: 'bg-orange-50' },
+    { id: 1, sev: 'CRIT.', text: t.dashboardAI.insight1, conf: 94, color: 'var(--flag)' },
+    { id: 2, sev: 'CRIT.', text: t.dashboardAI.insight2, conf: 98, color: 'var(--flag)' },
+    { id: 3, sev: 'HIGH',  text: t.dashboardAI.insight3, conf: 79, color: 'var(--rust)' },
+    { id: 4, sev: 'HIGH',  text: t.dashboardAI.insight4, conf: 82, color: 'var(--rust)' },
   ]
 
-  // Localize severity labels in chart data
   const localizedFindingsBySeverity = findingsBySeverity.map(f => ({
     ...f,
-    severityLabel: (t.severity as Record<string, string>)[f.severity.toLowerCase()] ?? f.severity,
+    severityLabel: ((t.severity as Record<string, string>)[f.severity.toLowerCase()] ?? f.severity).toUpperCase(),
   }))
 
-  // Localize chart month labels
   const localizedTrendData = inspectionTrendData.map(d => ({
     ...d,
-    monthLabel: lf(locale, d as Record<string, unknown>, 'month'),
+    monthLabel: lf(locale, d as Record<string, unknown>, 'month') as string,
   }))
 
+  const tooltipStyle = { background: 'var(--paper)', border: '1px solid var(--ink)', borderRadius: 0, fontFamily: "'IBM Plex Mono',monospace", fontSize: 11 }
+  const axisProps = { axisLine: { stroke: 'var(--rule)' }, tickLine: false, tick: { fontSize: 10, fontFamily: "'IBM Plex Mono',monospace", fill: 'var(--muted)' } }
+
   return (
-    <div className="p-6 space-y-6">
-      {/* KPI Cards */}
+    <div style={{ padding: '24px 32px 48px' }}>
+
+      {/* ── Meta strip ── */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-4">
+          <span className="tag mono" style={{ letterSpacing: '.12em', textTransform: 'uppercase' }}>
+            <span className="dot" style={{ background: 'var(--pine)' }} />
+            Live Telemetry · 14 sensors
+          </span>
+          <span className="mono" style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '.1em' }}>
+            LAST REFRESH · 00:04 AGO
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button className="btn-secondary"><Plus size={12} /> New Task</button>
+          <button className="btn-primary"><Download size={12} /> Export Brief</button>
+        </div>
+      </div>
+
+      {/* ── KPI Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <KPICard
-          label={t.kpi.totalInspectionsWeek}
+          idx="01" label={t.kpi.totalInspectionsWeek}
           value={kpiData.totalInspectionsThisWeek}
-          icon={<ClipboardList className="w-5 h-5 text-blue-600" />}
-          iconBg="bg-blue-100"
-          trend={kpiData.trend.inspections}
-          trendLabel={t.dashboard.vsLastWeek}
+          trend={kpiData.trend.inspections} trendLabel={t.dashboard.vsLastWeek}
+          suffix="runs"
+          sparkBars={[40,30,55,45,60,50,72,65,80,55,70,90]}
         />
         <KPICard
-          label={t.kpi.openFindings}
+          idx="02" label={t.kpi.openFindings}
           value={kpiData.openFindings}
-          icon={<AlertTriangle className="w-5 h-5 text-orange-600" />}
-          iconBg="bg-orange-100"
-          trend={kpiData.trend.openFindings}
-          trendLabel={t.dashboard.vsLastWeek}
-          valueColor="text-orange-600"
+          trend={kpiData.trend.openFindings} trendLabel={t.dashboard.vsLastWeek}
+          suffix="active"
+          sparkBars={[30,40,35,50,45,55,60,58,62,65,68,72]}
         />
         <KPICard
-          label={t.kpi.highRiskAssets}
+          idx="03" label={t.kpi.highRiskAssets}
           value={kpiData.highRiskAssets}
-          icon={<Factory className="w-5 h-5 text-red-600" />}
-          iconBg="bg-red-100"
-          trend={kpiData.trend.highRiskAssets}
-          trendLabel={t.dashboard.vsLastWeek}
-          valueColor="text-red-600"
+          trend={kpiData.trend.highRiskAssets} trendLabel={t.dashboard.vsLastWeek}
+          suffix="units"
+          sparkBars={[70,65,60,55,62,58,55,52,50,48,46,44]}
         />
         <KPICard
-          label={t.kpi.overdueActions}
+          idx="04" label={t.kpi.overdueActions}
           value={kpiData.overdueActions}
-          icon={<Clock className="w-5 h-5 text-yellow-600" />}
-          iconBg="bg-yellow-100"
-          trend={kpiData.trend.overdueActions}
-          trendLabel={t.dashboard.vsLastWeek}
-          valueColor="text-yellow-700"
+          trend={kpiData.trend.overdueActions} trendLabel={t.dashboard.vsLastWeek}
+          suffix="items"
+          sparkBars={[20,25,30,28,35,38,42,45,48,50,55,60]}
         />
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Inspection Trend */}
-        <div className="card p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-base font-semibold text-gray-900">{t.dashboard.inspectionTrend}</h2>
-              <p className="text-xs text-gray-500">{t.dashboard.last6Months}</p>
+      {/* ── Charts ── */}
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-4 mt-4">
+
+        {/* Inspection Trend — 3 cols */}
+        <div className="card xl:col-span-3">
+          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--rule)' }}>
+            <div className="flex items-center gap-4">
+              <span className="mono" style={{ fontSize: 10, letterSpacing: '.22em', color: 'var(--muted)' }}>FIG.01</span>
+              <div>
+                <h2 className="serif" style={{ fontSize: 18, fontWeight: 500, letterSpacing: '-0.01em', color: 'var(--ink)' }}>
+                  {t.dashboard.inspectionTrend}
+                </h2>
+                <p className="mono" style={{ fontSize: 10.5, color: 'var(--muted)', letterSpacing: '.1em', marginTop: 2, textTransform: 'uppercase' }}>
+                  {t.dashboard.last6Months} · monthly count
+                </p>
+              </div>
             </div>
-            <span className="badge bg-blue-100 text-blue-700">{t.dashboard.thisWeek}: {kpiData.totalInspectionsThisWeek}</span>
+            <div className="flex items-center gap-3 mono" style={{ fontSize: 10.5, letterSpacing: '.1em', color: 'var(--muted)', textTransform: 'uppercase' }}>
+              <span><span className="sq" style={{ background: 'var(--ink)', marginRight: 6, display: 'inline-block' }} />Runs</span>
+              <span><span className="sq" style={{ background: 'var(--rust)', marginRight: 6, display: 'inline-block' }} />Target 50</span>
+            </div>
           </div>
-          <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={localizedTrendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="monthLabel" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
-              <Tooltip
-                contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
-                formatter={(value) => [value, t.charts.count]}
-              />
-              <Line type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={2.5} dot={{ fill: '#3b82f6', r: 4 }} activeDot={{ r: 6 }} />
-            </LineChart>
-          </ResponsiveContainer>
+          <div style={{ padding: '14px 8px 6px' }}>
+            <ResponsiveContainer width="100%" height={230}>
+              <LineChart data={localizedTrendData} margin={{ top: 14, right: 24, left: 10, bottom: 6 }}>
+                <CartesianGrid stroke="var(--rule-2)" strokeDasharray="0" vertical={false} />
+                <XAxis dataKey="monthLabel" {...axisProps} />
+                <YAxis {...axisProps} axisLine={false} />
+                <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: 'var(--ink)', strokeDasharray: '2 2' }} formatter={(v) => [v, t.charts.count]} />
+                <ReferenceLine y={50} stroke="var(--rust)" strokeDasharray="3 3" />
+                <Line type="linear" dataKey="count" stroke="var(--ink)" strokeWidth={1.25}
+                  dot={{ fill: 'var(--paper)', stroke: 'var(--ink)', strokeWidth: 1.25, r: 4 }}
+                  activeDot={{ r: 5, fill: 'var(--ink)' }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        {/* Findings by Severity */}
-        <div className="card p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-base font-semibold text-gray-900">{t.dashboard.findingsBySeverity}</h2>
-              <p className="text-xs text-gray-500">{t.kpi.openFindings}: {kpiData.openFindings}</p>
-            </div>
-          </div>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={localizedFindingsBySeverity} barSize={36}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-              <XAxis dataKey="severityLabel" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
-              <Tooltip
-                contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
-                formatter={(value) => [value, t.charts.count]}
-              />
-              <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                {localizedFindingsBySeverity.map((entry, idx) => (
-                  <Cell key={idx} fill={entry.color} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-          <div className="flex items-center justify-center gap-4 mt-2 flex-wrap">
-            {localizedFindingsBySeverity.map(f => (
-              <div key={f.severity} className="flex items-center gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: f.color }}></div>
-                <span className="text-xs text-gray-600">{f.severityLabel} ({f.count})</span>
+        {/* Findings by Severity — 2 cols */}
+        <div className="card xl:col-span-2">
+          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--rule)' }}>
+            <div className="flex items-center gap-4">
+              <span className="mono" style={{ fontSize: 10, letterSpacing: '.22em', color: 'var(--muted)' }}>FIG.02</span>
+              <div>
+                <h2 className="serif" style={{ fontSize: 18, fontWeight: 500, letterSpacing: '-0.01em', color: 'var(--ink)' }}>
+                  {t.dashboard.findingsBySeverity}
+                </h2>
+                <p className="mono" style={{ fontSize: 10.5, color: 'var(--muted)', letterSpacing: '.1em', marginTop: 2, textTransform: 'uppercase' }}>
+                  By severity · n=73
+                </p>
               </div>
+            </div>
+            <span className="mono" style={{ fontSize: 10.5, color: 'var(--muted)', letterSpacing: '.12em' }}>OPEN {kpiData.openFindings}</span>
+          </div>
+          <div style={{ padding: '14px 8px 0' }}>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={localizedFindingsBySeverity} barSize={28} margin={{ top: 10, right: 16, left: 8, bottom: 0 }}>
+                <CartesianGrid stroke="var(--rule-2)" vertical={false} />
+                <XAxis dataKey="severityLabel" {...axisProps} />
+                <YAxis {...axisProps} axisLine={false} />
+                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(26,29,31,0.06)' }} formatter={(v) => [v, t.charts.count]} />
+                <Bar dataKey="count" radius={0}>
+                  {localizedFindingsBySeverity.map((entry, idx) => (
+                    <Cell key={idx} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex items-center flex-wrap gap-x-4 gap-y-2 px-5 py-3 mono"
+            style={{ fontSize: 10.5, letterSpacing: '.1em', color: 'var(--muted)', textTransform: 'uppercase', borderTop: '1px solid var(--rule)' }}>
+            {localizedFindingsBySeverity.map(f => (
+              <span key={f.severity} className="flex items-center gap-1.5">
+                <span className="sq" style={{ background: f.color }} />
+                {f.severityLabel} · {f.count}
+              </span>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Recent Inspections + High-Risk Assets */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Recent Inspections Table */}
+      {/* ── Recent Inspections + High-Risk Assets ── */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mt-4">
+
+        {/* Recent Inspections */}
         <div className="card xl:col-span-2">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <h2 className="text-base font-semibold text-gray-900">{t.dashboard.recentInspections}</h2>
-            <Link to="/tasks" className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
-              {t.dashboard.viewAllTasks} <ArrowRight className="w-3.5 h-3.5" />
+          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--rule)' }}>
+            <div className="flex items-center gap-4">
+              <span className="mono" style={{ fontSize: 10, letterSpacing: '.22em', color: 'var(--muted)' }}>LOG</span>
+              <h2 className="serif" style={{ fontSize: 18, fontWeight: 500, letterSpacing: '-0.01em', color: 'var(--ink)' }}>
+                {t.dashboard.recentInspections}
+              </h2>
+            </div>
+            <Link to="/tasks" className="mono flex items-center gap-1"
+              style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'var(--ink)', textTransform: 'uppercase', textDecoration: 'none' }}>
+              {t.dashboard.viewAllTasks} →
             </Link>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="nordic w-full">
               <thead>
-                <tr className="text-xs text-gray-500 border-b border-gray-100">
-                  <th className="text-left px-5 py-3 font-medium">{t.tasks.taskId}</th>
-                  <th className="text-left px-3 py-3 font-medium">{t.asset}</th>
-                  <th className="text-left px-3 py-3 font-medium">{t.zone}</th>
-                  <th className="text-left px-3 py-3 font-medium">{t.inspector}</th>
-                  <th className="text-left px-3 py-3 font-medium">{t.tasks.scheduledDate}</th>
-                  <th className="text-left px-3 py-3 font-medium">{t.tasks.statusHeader}</th>
+                <tr>
+                  <th style={{ textAlign: 'left', padding: '10px 20px' }}>{t.tasks.taskId}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.asset}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.zone}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.inspector}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.tasks.scheduledDate}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.tasks.statusHeader}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody>
                 {recentTasks.map(task => (
-                  <tr key={task.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-3">
-                      <Link to={`/tasks/${task.id}/execute`} className="text-sm font-mono text-blue-600 hover:text-blue-700 font-medium">
+                  <tr key={task.id}>
+                    <td style={{ padding: '14px 20px' }}>
+                      <Link to={`/tasks/${task.id}/execute`} className="mono"
+                        style={{ fontSize: 12, color: 'var(--ink)', letterSpacing: '.02em', borderBottom: '1px dashed var(--muted)', textDecoration: 'none' }}>
                         {task.id}
                       </Link>
                     </td>
-                    <td className="px-3 py-3 text-sm text-gray-700 max-w-[160px] truncate">{lf(locale, assets.find(a => a.id === task.assetId) as Record<string, unknown> ?? { name: task.asset }, 'name')}</td>
-                    <td className="px-3 py-3 text-sm text-gray-500">{lf(locale, zones.find(z => z.id === task.zoneId) as Record<string, unknown> ?? { name: task.zone }, 'name')}</td>
-                    <td className="px-3 py-3 text-sm text-gray-500">{lf(locale, inspectors.find(i => i.name === task.assignedTo) as Record<string, unknown> ?? { name: task.assignedTo }, 'name')}</td>
-                    <td className="px-3 py-3 text-sm text-gray-500">{task.dueDate}</td>
-                    <td className="px-3 py-3"><StatusBadge status={task.status} /></td>
+                    <td style={{ padding: '14px 12px', color: 'var(--ink-2)' }}>
+                      {lf(locale, assets.find(a => a.id === task.assetId) as Record<string, unknown> ?? { name: task.asset }, 'name') as string}
+                    </td>
+                    <td style={{ padding: '14px 12px', color: 'var(--muted)' }}>
+                      {lf(locale, zones.find(z => z.id === task.zoneId) as Record<string, unknown> ?? { name: task.zone }, 'name') as string}
+                    </td>
+                    <td style={{ padding: '14px 12px', color: 'var(--muted)' }}>
+                      {lf(locale, inspectors.find(i => i.name === task.assignedTo) as Record<string, unknown> ?? { name: task.assignedTo }, 'name') as string}
+                    </td>
+                    <td style={{ padding: '14px 12px' }}>
+                      <span className="mono" style={{ fontSize: 11.5, color: 'var(--muted)', letterSpacing: '.04em' }}>{task.dueDate}</span>
+                    </td>
+                    <td style={{ padding: '14px 12px' }}>
+                      <StatusBadge status={task.status} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -196,78 +243,131 @@ export default function Dashboard() {
 
         {/* High-Risk Assets */}
         <div className="card">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <h2 className="text-base font-semibold text-gray-900">{t.dashboard.highRiskAssets}</h2>
-            <Link to="/assets" className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
-              {t.viewAll} <ArrowRight className="w-3.5 h-3.5" />
+          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--rule)' }}>
+            <div className="flex items-center gap-4">
+              <span className="mono" style={{ fontSize: 10, letterSpacing: '.22em', color: 'var(--muted)' }}>RISK</span>
+              <h2 className="serif" style={{ fontSize: 18, fontWeight: 500, letterSpacing: '-0.01em', color: 'var(--ink)' }}>
+                {t.dashboard.highRiskAssets}
+              </h2>
+            </div>
+            <Link to="/assets" className="mono flex items-center gap-1"
+              style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'var(--ink)', textTransform: 'uppercase', textDecoration: 'none' }}>
+              {t.viewAll} →
             </Link>
           </div>
-          <div className="p-4 space-y-3">
-            {topRiskAssets.map(asset => (
-              <Link to={`/assets/${asset.id}`} key={asset.id} className="block group">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-800 group-hover:text-blue-600 transition-colors truncate max-w-[160px]">
-                    {lf(locale, asset as Record<string, unknown>, 'name')}
-                  </span>
-                  <span className={`text-sm font-bold ${
-                    asset.riskScore >= 80 ? 'text-red-600' :
-                    asset.riskScore >= 60 ? 'text-orange-600' :
-                    asset.riskScore >= 40 ? 'text-yellow-600' : 'text-green-600'
-                  }`}>
-                    {asset.riskScore}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-100 rounded-full h-1.5">
-                  <div
-                    className={`h-1.5 rounded-full ${
-                      asset.riskScore >= 80 ? 'bg-red-500' :
-                      asset.riskScore >= 60 ? 'bg-orange-500' :
-                      asset.riskScore >= 40 ? 'bg-yellow-500' : 'bg-green-500'
-                    }`}
-                    style={{ width: `${asset.riskScore}%` }}
-                  ></div>
-                </div>
-                <p className="text-xs text-gray-400 mt-0.5">{assetTypeLabel(asset.type)} · {t.criticality}: {(t.severity as Record<string, string>)[asset.criticality.toLowerCase()] ?? asset.criticality}</p>
-              </Link>
-            ))}
+          <div>
+            {topRiskAssets.map((asset, i) => {
+              const color = asset.riskScore >= 80 ? 'var(--flag)' : asset.riskScore >= 60 ? 'var(--rust)' : asset.riskScore >= 40 ? 'var(--ochre)' : 'var(--moss)'
+              return (
+                <Link key={asset.id} to={`/assets/${asset.id}`} className="block px-5 py-4"
+                  style={{ borderBottom: i < topRiskAssets.length - 1 ? '1px solid var(--rule-2)' : 'none', textDecoration: 'none' }}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="mono" style={{ fontSize: 10.5, color: 'var(--muted)', letterSpacing: '.08em' }}>
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <div>
+                        <div style={{ fontSize: 13.5, color: 'var(--ink)', fontWeight: 500 }}>
+                          {lf(locale, asset as Record<string, unknown>, 'name') as string}
+                        </div>
+                        <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '.1em', textTransform: 'uppercase', marginTop: 2 }}>
+                          {assetTypeLabel(asset.type)} · {t.criticality}: {(t.severity as Record<string, string>)[asset.criticality.toLowerCase()] ?? asset.criticality}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div className="serif" style={{ fontSize: 26, lineHeight: 1, color, fontVariationSettings: '"opsz" 48' }}>
+                        {asset.riskScore}
+                      </div>
+                      <div className="mono" style={{ fontSize: 9, color: 'var(--muted)', letterSpacing: '.14em', textTransform: 'uppercase' }}>/100</div>
+                    </div>
+                  </div>
+                  <div style={{ position: 'relative', height: 3, background: 'var(--rule-2)', marginTop: 10 }}>
+                    <div style={{ position: 'absolute', inset: 0, width: `${asset.riskScore}%`, background: color }} />
+                  </div>
+                </Link>
+              )
+            })}
           </div>
         </div>
       </div>
 
-      {/* AI Insights Panel */}
-      <div className="card">
-        <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <Brain className="w-4 h-4 text-white" />
+      {/* ── AI Insights ── */}
+      <div className="card mt-4">
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--rule)' }}>
+          <div className="flex items-center gap-4">
+            {/* Geometric icon */}
+            <div style={{ width: 32, height: 32, border: '1px solid var(--ink)', position: 'relative', flexShrink: 0 }}>
+              <div style={{ position: 'absolute', inset: 4, background: 'var(--ink)' }} />
+              <div style={{ position: 'absolute', right: 3, bottom: 3, width: 4, height: 4, background: 'var(--rust)' }} />
+            </div>
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="mono" style={{ fontSize: 10, letterSpacing: '.22em', color: 'var(--muted)' }}>SIGNALS</span>
+                <h2 className="serif" style={{ fontSize: 18, fontWeight: 500, letterSpacing: '-0.01em', color: 'var(--ink)' }}>
+                  {t.dashboard.aiInsightsPanel}
+                </h2>
+              </div>
+              <p className="mono" style={{ fontSize: 10.5, color: 'var(--muted)', letterSpacing: '.1em', marginTop: 2, textTransform: 'uppercase' }}>
+                {t.dashboard.aiInsightSubtitle}
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-base font-semibold text-gray-900">{t.dashboard.aiInsightsPanel}</h2>
-            <p className="text-xs text-gray-500">{t.dashboard.aiInsightSubtitle}</p>
+          <div className="mono" style={{ fontSize: 10.5, color: 'var(--muted)', letterSpacing: '.14em', textTransform: 'uppercase' }}>
+            4 ACTIVE · 2 CRITICAL
           </div>
         </div>
-        <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-3">
-          {aiInsights.map(insight => (
-            <div
-              key={insight.id}
-              className={`border-l-4 ${insight.border} ${insight.bg} rounded-r-lg p-4`}
-            >
-              <div className="flex items-start gap-3">
-                <Info className={`w-4 h-4 mt-0.5 flex-shrink-0 ${insight.severity === 'critical' ? 'text-red-600' : 'text-orange-600'}`} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-800 leading-snug">{insight.text}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className={`badge ${insight.severity === 'critical' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
-                      {t.aiInsights.confidence}: {insight.confidence}%
-                    </span>
-                    <Link to="/ai-insights" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-0.5">
-                      {t.viewDetails} <ArrowRight className="w-3 h-3" />
-                    </Link>
+        <div className="grid grid-cols-1 lg:grid-cols-2">
+          {aiInsights.map((ins, i) => {
+            const isLastRow = i >= 2
+            const isRightCol = i % 2 === 1
+            return (
+              <div key={ins.id} style={{
+                padding: '18px 20px',
+                borderRight: !isRightCol ? '1px solid var(--rule-2)' : 'none',
+                borderBottom: !isLastRow ? '1px solid var(--rule-2)' : 'none',
+              }}>
+                <div className="flex items-start gap-4">
+                  {/* Side accent bar */}
+                  <div style={{ width: 4, background: ins.color, alignSelf: 'stretch', flexShrink: 0 }} />
+                  <div style={{ flex: 1 }}>
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="badge" style={{ color: ins.color, borderColor: ins.color }}>
+                        <span className="sq" style={{ background: ins.color }} />
+                        {ins.sev}
+                      </span>
+                      <span className="mono" style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '.12em' }}>
+                        SIG‑{String(ins.id).padStart(3, '0')}
+                      </span>
+                      <span className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginLeft: 'auto', letterSpacing: '.12em' }}>
+                        CONF · {ins.conf}%
+                      </span>
+                    </div>
+                    <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--ink-2)' }}>{ins.text}</p>
+                    <div className="flex items-center gap-2 mt-3">
+                      {/* Confidence bar */}
+                      <div style={{ flex: 1, height: 2, background: 'var(--rule-2)', position: 'relative' }}>
+                        <div style={{ position: 'absolute', inset: 0, width: `${ins.conf}%`, background: ins.color }} />
+                      </div>
+                      <Link to="/ai-insights" className="mono flex items-center gap-1"
+                        style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'var(--ink)', textTransform: 'uppercase', textDecoration: 'none' }}>
+                        {t.viewDetails} →
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
+      </div>
+
+      {/* ── Footer ── */}
+      <div className="flex items-center justify-between mt-6 pt-4 mono"
+        style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '.14em', textTransform: 'uppercase', borderTop: '1px solid var(--rule)' }}>
+        <span>© {t.appName} · 2024</span>
+        <span>Build 4.2.103</span>
+        <span>Confidential · Internal Use</span>
       </div>
     </div>
   )

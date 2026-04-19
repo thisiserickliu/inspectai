@@ -2,36 +2,211 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --paper:  #f2efe9;
+  --canvas: #e8e3d9;
+  --card:   #fbfaf6;
+  --ink:    #1a1d1f;
+  --ink-2:  #2b2f33;
+  --muted:  #6b6f73;
+  --rule:   #cfc9bd;
+  --rule-2: #ddd6c7;
+  --steel:  #3a444b;
+  --pine:   #2f4a3a;
+  --rust:   #b5532a;
+  --ochre:  #c89a3c;
+  --moss:   #7a8a5a;
+  --stone:  #8a8f8a;
+  --flag:   #a83e2b;
+}
+
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', 'Noto Sans JP', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', 'Noto Sans JP', sans-serif;
+    font-feature-settings: "ss01","ss02","cv11";
+    -webkit-font-smoothing: antialiased;
   }
+  ::selection { background: var(--ink); color: var(--paper); }
 }
 
 @layer components {
-  .sidebar-link {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150;
+  /* ── Typography ── */
+  .mono {
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: -0.01em;
   }
-  .sidebar-link-active {
-    @apply bg-blue-600 text-white;
+  .serif {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 48;
   }
-  .sidebar-link-inactive {
-    @apply text-slate-300 hover:bg-slate-700 hover:text-white;
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--muted);
   }
-  .badge {
-    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold;
+  .kpi-num {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 56px;
+    line-height: 1;
+    font-variation-settings: "opsz" 72;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
   }
+
+  /* ── Layout primitives ── */
   .card {
-    @apply bg-white rounded-xl border border-gray-200 shadow-sm;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    box-shadow: none;
   }
+  .hair   { border: 1px solid var(--rule); }
+  .hair-b { border-bottom: 1px solid var(--rule); }
+  .hair-t { border-top: 1px solid var(--rule); }
+  .hair-r { border-right: 1px solid var(--rule); }
+  .rule-dash {
+    background-image: repeating-linear-gradient(90deg, var(--rule) 0 6px, transparent 6px 12px);
+    height: 1px;
+  }
+
+  /* ── Shapes ── */
+  .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .sq  { width: 8px; height: 8px; display: inline-block; flex-shrink: 0; }
+
+  /* ── Badges / chips ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 6px;
+    border-radius: 1px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    border: 1px solid currentColor;
+    background: transparent;
+  }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    font-size: 11px;
+    font-weight: 500;
+    background: transparent;
+    color: var(--ink-2);
+  }
+
+  /* ── Sidebar ── */
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 9px 12px;
+    font-size: 13px;
+    letter-spacing: .01em;
+    color: #cdd0cf;
+    border-left: 2px solid transparent;
+    cursor: pointer;
+    transition: all .15s;
+    text-decoration: none;
+  }
+  .sidebar-link:hover { color: #f2efe9; background: rgba(255,255,255,.03); }
+  .sidebar-link-active {
+    color: #f2efe9;
+    background: rgba(255,255,255,.06);
+    border-left-color: var(--rust);
+  }
+  .sidebar-link-inactive { color: #cdd0cf; }
+  .sidebar-link-inactive:hover { color: #f2efe9; background: rgba(255,255,255,.03); }
+
+  /* ── Buttons ── */
   .btn-primary {
-    @apply bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--ink);
+    border-radius: 2px;
+    font-size: 12px;
+    font-weight: 500;
+    background: transparent;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    cursor: pointer;
+    transition: all .15s;
+    font-family: inherit;
   }
+  .btn-primary:hover { background: var(--ink); color: var(--paper); }
+
   .btn-secondary {
-    @apply bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--ink-2);
+    background: transparent;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    transition: all .15s;
+    font-family: inherit;
   }
+  .btn-secondary:hover { border-color: var(--ink); }
+
+  /* ── Form inputs ── */
   .form-input {
-    @apply w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors;
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 13px;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    background: var(--card);
+    color: var(--ink);
+    font-family: inherit;
+    transition: border-color .15s;
+  }
+  .form-input:focus { outline: none; border-color: var(--ink); }
+  .form-input::placeholder { color: var(--muted); }
+
+  /* ── Tables ── */
+  table.nordic th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    background: transparent;
+  }
+  table.nordic td { font-size: 13px; color: var(--ink-2); }
+  table.nordic tbody tr { border-bottom: 1px solid var(--rule-2); }
+  table.nordic tbody tr:hover { background: rgba(26,29,31,0.025); }
+  table.nordic thead tr { border-bottom: 1px solid var(--rule); }
+
+  /* Recharts overrides */
+  .recharts-cartesian-axis-tick text {
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 10px !important;
+    fill: var(--muted) !important;
+  }
+  .recharts-default-tooltip {
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 11px !important;
+    border-radius: 0 !important;
   }
 }

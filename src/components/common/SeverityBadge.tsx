@@ -2,11 +2,11 @@ import { useI18n } from '../../i18n'
 
 type Severity = 'low' | 'medium' | 'high' | 'critical'
 
-const severityStyles: Record<Severity, string> = {
-  low: 'bg-green-100 text-green-800',
-  medium: 'bg-yellow-100 text-yellow-800',
-  high: 'bg-orange-100 text-orange-800',
-  critical: 'bg-red-100 text-red-800',
+const severityColors: Record<Severity, string> = {
+  low:      'var(--moss)',
+  medium:   'var(--ochre)',
+  high:     'var(--rust)',
+  critical: 'var(--flag)',
 }
 
 interface SeverityBadgeProps {
@@ -17,11 +17,15 @@ interface SeverityBadgeProps {
 export default function SeverityBadge({ severity, className = '' }: SeverityBadgeProps) {
   const { t } = useI18n()
   const key = severity as Severity
-  const style = severityStyles[key] ?? 'bg-gray-100 text-gray-600'
-  const label = (t.severity as Record<string, string>)[severity] ?? severity
+  const color = severityColors[key] ?? 'var(--stone)'
+  const label = ((t.severity as Record<string, string>)[severity] ?? severity).toUpperCase()
 
   return (
-    <span className={`badge ${style} ${className}`}>
+    <span
+      className={`badge ${className}`}
+      style={{ color, borderColor: color }}
+    >
+      <span className="sq" style={{ background: color }} />
       {label}
     </span>
   )
