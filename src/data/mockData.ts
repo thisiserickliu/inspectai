@@ -481,10 +481,10 @@ export const inspectionTrendData = [
 ]
 
 export const findingsBySeverity = [
-  { severity: 'Critical', count: 5, color: '#dc2626' },
-  { severity: 'High', count: 14, color: '#ea580c' },
-  { severity: 'Medium', count: 23, color: '#d97706' },
-  { severity: 'Low', count: 31, color: '#65a30d' },
+  { severity: 'Critical', count: 5,  color: '#a83e2b' },
+  { severity: 'High',     count: 14, color: '#b5532a' },
+  { severity: 'Medium',   count: 23, color: '#c89a3c' },
+  { severity: 'Low',      count: 31, color: '#7a8a5a' },
 ]
 
 export const riskScoreTrend = [

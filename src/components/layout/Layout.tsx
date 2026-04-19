@@ -4,11 +4,11 @@ import Header from './Header'
 
 export default function Layout() {
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex min-h-screen" style={{ background: 'var(--paper)' }}>
       <Sidebar />
-      <div className="flex-1 flex flex-col ml-64 min-w-0">
+      <div className="flex-1 flex flex-col min-w-0" style={{ marginLeft: '16rem' }}>
         <Header />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1">
           <Outlet />
         </main>
       </div>

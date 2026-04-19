@@ -1,131 +1,171 @@
 import { useState } from 'react'
-import { Bell, ChevronDown, User, Globe } from 'lucide-react'
+import { Bell, ChevronDown, Globe, Search, Filter, Download } from 'lucide-react'
 import { useI18n, Locale } from '../../i18n'
 import { useLocation } from 'react-router-dom'
 
-const pageTitles: Record<string, string> = {
-  '/dashboard': 'dashboard',
-  '/tasks': 'inspectionTasks',
-  '/assets': 'assets',
-  '/findings': 'findings',
-  '/reports': 'reports',
-  '/ai-insights': 'aiInsights',
-  '/mobile': 'mobileInspection',
-  '/settings': 'settings',
+const pageConfig: Record<string, { section: string; title: string }> = {
+  '/dashboard':   { section: 'Workbench / Dashboard',  title: 'Executive Overview'    },
+  '/tasks':       { section: 'Workbench / Tasks',       title: 'Inspection Log'        },
+  '/assets':      { section: 'Workbench / Assets',      title: 'Asset Registry'        },
+  '/findings':    { section: 'Workbench / Findings',    title: 'Findings Index'        },
+  '/reports':     { section: 'Workbench / Reports',     title: 'Report Archive'        },
+  '/ai-insights': { section: 'Workbench / AI Insights', title: 'Signal Analysis'       },
+  '/mobile':      { section: 'Workbench / Mobile',      title: 'Field Inspection'      },
+  '/settings':    { section: 'Workbench / Settings',    title: 'System Configuration'  },
 }
 
+const languages: { code: Locale; label: string; short: string }[] = [
+  { code: 'en',    label: 'English',   short: 'EN' },
+  { code: 'zh-TW', label: '繁體中文', short: '中'  },
+  { code: 'ja',    label: '日本語',   short: '日'  },
+]
+
 export default function Header() {
-  const { t, locale, setLocale } = useI18n()
+  const { locale, setLocale } = useI18n()
   const location = useLocation()
   const [showLangMenu, setShowLangMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
 
-  const pathKey = Object.keys(pageTitles).find(k => location.pathname.startsWith(k)) ?? '/dashboard'
-  const titleKey = pageTitles[pathKey] as keyof typeof t.nav
-  const title = t.nav[titleKey] ?? ''
-
-  const languages: { code: Locale; label: string }[] = [
-    { code: 'en', label: 'English' },
-    { code: 'zh-TW', label: '繁體中文' },
-    { code: 'ja', label: '日本語' },
-  ]
+  const closeAll = () => { setShowLangMenu(false); setShowNotifications(false); setShowProfile(false) }
+  const pathKey = Object.keys(pageConfig).find(k => location.pathname.startsWith(k)) ?? '/dashboard'
+  const config = pageConfig[pathKey]
+  const currentLang = languages.find(l => l.code === locale)
 
   return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center px-6 gap-4 sticky top-0 z-20">
-      <h1 className="text-xl font-semibold text-gray-900 flex-1">{title}</h1>
+    <header className="sticky top-0 z-20" style={{ background: 'var(--paper)', borderBottom: '1px solid var(--rule)' }}>
+      <div className="flex items-stretch">
 
-      <div className="flex items-center gap-2">
-        {/* Language Switcher */}
-        <div className="relative">
-          <button
-            onClick={() => { setShowLangMenu(!showLangMenu); setShowNotifications(false); setShowProfile(false) }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
-          >
-            <Globe className="w-4 h-4" />
-            <span>{locale === 'zh-TW' ? t.languages.zhTW : t.languages[locale as 'en' | 'ja']}</span>
-            <ChevronDown className="w-3 h-3" />
-          </button>
-          {showLangMenu && (
-            <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 w-36 z-50">
-              {languages.map(lang => (
-                <button
-                  key={lang.code}
-                  onClick={() => { setLocale(lang.code); setShowLangMenu(false) }}
-                  className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                    locale === lang.code
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  {lang.label}
-                </button>
-              ))}
-            </div>
-          )}
+        {/* Title */}
+        <div className="flex-1 px-8 py-5 flex items-end gap-6">
+          <div>
+            <div className="section-label">{config.section}</div>
+            <h1 className="serif" style={{ fontSize: 28, letterSpacing: '-0.02em', lineHeight: 1.1, marginTop: 2, fontWeight: 500, color: 'var(--ink)' }}>
+              {config.title}
+            </h1>
+          </div>
+          <div className="mono" style={{ fontSize: 11, color: 'var(--muted)', paddingBottom: 6, letterSpacing: '.08em' }}>
+            W12 · MON 2024‑03‑11 — FRI 2024‑03‑15
+          </div>
         </div>
 
-        {/* Notification Bell */}
-        <div className="relative">
-          <button
-            onClick={() => { setShowNotifications(!showNotifications); setShowLangMenu(false); setShowProfile(false) }}
-            className="relative w-9 h-9 rounded-lg text-gray-500 hover:bg-gray-100 flex items-center justify-center transition-colors"
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
-          {showNotifications && (
-            <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 w-80 z-50">
-              <div className="px-4 py-3 border-b border-gray-100">
-                <h3 className="text-sm font-semibold text-gray-900">{t.notifications}</h3>
+        {/* Actions rail */}
+        <div className="flex items-stretch" style={{ borderLeft: '1px solid var(--rule)' }}>
+
+          {/* Utility buttons */}
+          <div className="flex items-center gap-2 px-4" style={{ borderRight: '1px solid var(--rule)' }}>
+            <button className="btn-secondary"><Search size={12} /> Search</button>
+            <button className="btn-secondary"><Filter size={12} /> Filter</button>
+            <button className="btn-secondary"><Download size={12} /> Export</button>
+          </div>
+
+          {/* Language */}
+          <div className="relative">
+            <button
+              onClick={() => { setShowLangMenu(!showLangMenu); setShowNotifications(false); setShowProfile(false) }}
+              style={{ padding: '0 16px', height: '100%', display: 'flex', alignItems: 'center', gap: 8, fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, letterSpacing: '.12em', color: 'var(--ink-2)', background: 'transparent', cursor: 'pointer', borderTop: 'none', borderBottom: 'none', borderLeft: 'none', borderRight: '1px solid var(--rule)' } as React.CSSProperties}
+            >
+              <Globe size={13} /> {currentLang?.short} <ChevronDown size={11} />
+            </button>
+            {showLangMenu && (
+              <div className="absolute right-0 top-full card z-50" style={{ width: 148, marginTop: -1 }}>
+                {languages.map((lang, i) => (
+                  <button
+                    key={lang.code}
+                    onClick={() => { setLocale(lang.code); setShowLangMenu(false) }}
+                    style={{
+                      width: '100%', textAlign: 'left', padding: '10px 16px',
+                      fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, letterSpacing: '.1em',
+                      color: locale === lang.code ? 'var(--rust)' : 'var(--ink-2)',
+                      background: 'transparent', cursor: 'pointer', display: 'block',
+                      borderBottom: i < languages.length - 1 ? '1px solid var(--rule-2)' : 'none',
+                    }}
+                  >
+                    {lang.label}
+                  </button>
+                ))}
               </div>
-              <div className="py-2">
+            )}
+          </div>
+
+          {/* Bell */}
+          <div className="relative">
+            <button
+              onClick={() => { setShowNotifications(!showNotifications); setShowLangMenu(false); setShowProfile(false) }}
+              style={{ padding: '0 16px', height: '100%', display: 'flex', alignItems: 'center', background: 'transparent', cursor: 'pointer', borderTop: 'none', borderBottom: 'none', borderLeft: 'none', borderRight: '1px solid var(--rule)', position: 'relative' } as React.CSSProperties}
+            >
+              <Bell size={16} style={{ color: 'var(--ink-2)' }} />
+              <span style={{ position: 'absolute', top: 14, right: 10, width: 6, height: 6, background: 'var(--flag)' }} />
+            </button>
+            {showNotifications && (
+              <div className="absolute right-0 top-full card z-50" style={{ width: 360, marginTop: -1 }}>
+                <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--rule)' }}>
+                  <span className="section-label">Notifications · 3</span>
+                  <span className="mono" style={{ fontSize: 10, color: 'var(--muted)', cursor: 'pointer' }}>MARK ALL</span>
+                </div>
                 {[
-                  { text: t.notif.n1, time: `5 ${t.notif.minAgo}`, dot: 'bg-red-500' },
-                  { text: t.notif.n2, time: `1 ${t.notif.hrAgo}`, dot: 'bg-yellow-500' },
-                  { text: t.notif.n3, time: `2 ${t.notif.hrsAgo}`, dot: 'bg-green-500' },
-                ].map((n, i) => (
-                  <div key={i} className="flex items-start gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer">
-                    <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${n.dot}`}></div>
+                  { text: 'Critical finding on CP‑104 requires immediate attention', time: '5 MIN AGO', color: 'var(--flag)' },
+                  { text: 'Inspection IT‑2024‑0311 is in progress (65%)',            time: '1 HR AGO',  color: 'var(--ochre)' },
+                  { text: 'Report RPT‑2024‑Q1‑001 has been approved',                time: '2 HRS AGO', color: 'var(--moss)' },
+                ].map((n, i, arr) => (
+                  <div key={i} className="flex items-start gap-3 px-4 py-3"
+                    style={{ borderBottom: i < arr.length - 1 ? '1px solid var(--rule-2)' : 'none', cursor: 'pointer' }}>
+                    <span className="sq" style={{ background: n.color, marginTop: 4, flexShrink: 0 }} />
                     <div>
-                      <p className="text-xs text-gray-800 leading-snug">{n.text}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{n.time}</p>
+                      <p style={{ fontSize: 12.5, lineHeight: 1.45, color: 'var(--ink)' }}>{n.text}</p>
+                      <p className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2, letterSpacing: '.1em' }}>{n.time}</p>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
 
-        {/* Profile */}
-        <div className="relative">
-          <button
-            onClick={() => { setShowProfile(!showProfile); setShowLangMenu(false); setShowNotifications(false) }}
-            className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center">
-              <User className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="text-sm font-medium text-gray-700">{t.user.name}</span>
-            <ChevronDown className="w-3 h-3 text-gray-400" />
-          </button>
-          {showProfile && (
-            <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 w-44 z-50">
-              <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{t.profile}</button>
-              <div className="border-t border-gray-100 my-1"></div>
-              <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">{t.logout}</button>
-            </div>
-          )}
+          {/* Profile */}
+          <div className="relative">
+            <button
+              onClick={() => { setShowProfile(!showProfile); setShowLangMenu(false); setShowNotifications(false) }}
+              style={{ padding: '0 16px', height: '100%', display: 'flex', alignItems: 'center', gap: 12, background: 'transparent', cursor: 'pointer', border: 'none' }}
+            >
+              <div
+                className="flex items-center justify-center mono"
+                style={{ width: 30, height: 30, borderRadius: 2, background: 'var(--ink)', color: 'var(--paper)', fontSize: 11, letterSpacing: '.04em' }}
+              >
+                CW
+              </div>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink)' }}>Wei‑Ming</div>
+                <div className="mono" style={{ fontSize: 9.5, color: 'var(--muted)', letterSpacing: '.12em' }}>PLANT MGR</div>
+              </div>
+            </button>
+            {showProfile && (
+              <div className="absolute right-0 top-full card z-50" style={{ width: 160, marginTop: -1 }}>
+                <button style={{ width: '100%', textAlign: 'left', padding: '10px 16px', fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, letterSpacing: '.1em', color: 'var(--ink-2)', background: 'transparent', cursor: 'pointer', display: 'block', borderBottom: '1px solid var(--rule-2)' }}>
+                  PROFILE
+                </button>
+                <button style={{ width: '100%', textAlign: 'left', padding: '10px 16px', fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, letterSpacing: '.1em', color: 'var(--flag)', background: 'transparent', cursor: 'pointer', display: 'block' }}>
+                  LOGOUT
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Close menus on outside click */}
+      {/* Secondary meta rail */}
+      <div
+        className="flex items-center gap-6 px-8 py-2 mono"
+        style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'var(--muted)', borderTop: '1px solid var(--rule-2)', textTransform: 'uppercase' }}
+      >
+        <span>Taoyuan · P001</span>
+        <span>Zones 03</span>
+        <span>Assets 24</span>
+        <span>Inspectors 04</span>
+        <span style={{ marginLeft: 'auto', color: 'var(--pine)' }}>◐ Sync 12:41 UTC+08</span>
+      </div>
+
       {(showLangMenu || showNotifications || showProfile) && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => { setShowLangMenu(false); setShowNotifications(false); setShowProfile(false) }}
-        />
+        <div className="fixed inset-0 z-40" onClick={closeAll} />
       )}
     </header>
   )
