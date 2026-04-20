@@ -6,7 +6,7 @@ import { useI18n } from '../i18n'
 import { lf, teamKey } from '../utils/localize'
 import StatusBadge from '../components/common/StatusBadge'
 import SeverityBadge from '../components/common/SeverityBadge'
-import { assets, components, findings, inspectionTasks, riskScoreTrend } from '../data/mockData'
+import { assets, components, findings, riskScoreTrend } from '../data/mockData'
 
 const ASSET = assets.find(a => a.id === 'A003')!
 
@@ -37,10 +37,10 @@ export default function AssetDetail() {
     return map[type] ?? type
   }
 
-  const conditionStyle = (c: string) => {
-    if (c === 'Poor') return 'text-red-600 bg-red-50'
-    if (c === 'Fair') return 'text-yellow-600 bg-yellow-50'
-    return 'text-green-600 bg-green-50'
+  const conditionColor = (c: string) => {
+    if (c === 'Poor') return 'var(--flag)'
+    if (c === 'Fair') return 'var(--ochre)'
+    return 'var(--moss)'
   }
 
   const conditionLabel = (c: string) => {
@@ -50,128 +50,143 @@ export default function AssetDetail() {
   }
 
   const riskColor = (score: number) =>
-    score >= 80 ? 'text-red-600' : score >= 60 ? 'text-orange-600' : score >= 40 ? 'text-yellow-600' : 'text-green-600'
+    score >= 80 ? 'var(--flag)' : score >= 60 ? 'var(--rust)' : score >= 40 ? 'var(--ochre)' : 'var(--moss)'
 
   const typeLabel = (key: string) => {
     const map: Record<string, string> = {
-      routine: t.tasks.types.routine,
-      safety: t.tasks.types.safety,
-      preventive: t.tasks.types.preventive,
-      followUp: t.tasks.types.followUp,
-      emergency: t.tasks.types.emergency,
-      annual: t.tasks.types.annual,
+      routine: t.tasks.types.routine, safety: t.tasks.types.safety,
+      preventive: t.tasks.types.preventive, followUp: t.tasks.types.followUp,
+      emergency: t.tasks.types.emergency, annual: t.tasks.types.annual,
     }
     return map[key] ?? key
   }
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
-    { key: 'overview', label: t.assetDetail.tabs.overview, icon: <Settings className="w-4 h-4" /> },
-    { key: 'components', label: t.assetDetail.tabs.components, icon: <Wrench className="w-4 h-4" /> },
-    { key: 'history', label: t.assetDetail.tabs.inspectionHistory, icon: <Clock className="w-4 h-4" /> },
-    { key: 'findings', label: t.assetDetail.tabs.findings, icon: <AlertTriangle className="w-4 h-4" /> },
-    { key: 'documents', label: t.assetDetail.tabs.documents, icon: <FileText className="w-4 h-4" /> },
+    { key: 'overview',    label: t.assetDetail.tabs.overview,           icon: <Settings size={14} /> },
+    { key: 'components',  label: t.assetDetail.tabs.components,         icon: <Wrench size={14} /> },
+    { key: 'history',     label: t.assetDetail.tabs.inspectionHistory,  icon: <Clock size={14} /> },
+    { key: 'findings',    label: t.assetDetail.tabs.findings,           icon: <AlertTriangle size={14} /> },
+    { key: 'documents',   label: t.assetDetail.tabs.documents,          icon: <FileText size={14} /> },
   ]
+
+  const aiInsightColor = (type: string) => {
+    if (type === 'critical') return 'var(--flag)'
+    if (type === 'high') return 'var(--rust)'
+    if (type === 'medium') return 'var(--ochre)'
+    return 'var(--steel)'
+  }
 
   const aiInsights = [
     { type: 'critical', text: t.assetHealthAI.insight1 },
-    { type: 'high', text: t.assetHealthAI.insight2 },
-    { type: 'medium', text: t.assetHealthAI.insight3 },
-    { type: 'info', text: t.assetHealthAI.insight4 },
+    { type: 'high',     text: t.assetHealthAI.insight2 },
+    { type: 'medium',   text: t.assetHealthAI.insight3 },
+    { type: 'info',     text: t.assetHealthAI.insight4 },
   ]
 
+  const tooltipStyle = {
+    background: 'var(--paper)', border: '1px solid var(--ink)', borderRadius: 0,
+    fontFamily: "'IBM Plex Mono',monospace", fontSize: 11,
+  }
+
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 sm:p-6 space-y-5">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1.5 text-sm text-gray-500">
-        <Link to="/assets" className="hover:text-blue-600 transition-colors">{t.plants}</Link>
-        <ChevronRight className="w-3.5 h-3.5" />
-        <span className="hover:text-blue-600 cursor-pointer">{t.reportContent.taoyuanPlant}</span>
-        <ChevronRight className="w-3.5 h-3.5" />
-        <span className="hover:text-blue-600 cursor-pointer">{t.reportContent.zoneUtilityRoom}</span>
-        <ChevronRight className="w-3.5 h-3.5" />
-        <span className="text-gray-900 font-medium">CP-104</span>
+      <nav className="flex items-center gap-1.5 flex-wrap">
+        <Link to="/assets" className="mono" style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '.08em', textDecoration: 'none' }}>
+          {t.plants}
+        </Link>
+        <ChevronRight size={12} style={{ color: 'var(--muted)' }} />
+        <span className="mono" style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '.08em' }}>{t.reportContent.taoyuanPlant}</span>
+        <ChevronRight size={12} style={{ color: 'var(--muted)' }} />
+        <span className="mono" style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '.08em' }}>{t.reportContent.zoneUtilityRoom}</span>
+        <ChevronRight size={12} style={{ color: 'var(--muted)' }} />
+        <span className="mono" style={{ fontSize: 11, color: 'var(--ink)', letterSpacing: '.08em', fontWeight: 500 }}>CP-104</span>
       </nav>
 
       {/* Asset Header Card */}
-      <div className="card p-6">
+      <div className="card p-5 sm:p-6">
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="flex-1">
             <div className="flex items-start gap-4">
-              <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Wrench className="w-7 h-7 text-blue-600" />
+              {/* Asset icon — Nordic square */}
+              <div style={{ width: 48, height: 48, border: '1px solid var(--rule)', background: 'var(--canvas)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Wrench size={22} style={{ color: 'var(--rust)' }} strokeWidth={1.5} />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{lf(locale, ASSET as Record<string, unknown>, 'name')}</h1>
-                <p className="text-gray-500 mt-0.5">{t.assetDetail.idLabel}: <span className="font-mono text-gray-700">{ASSET.id}</span> · {assetTypeLabel(ASSET.type)}</p>
-                <div className="flex items-center gap-2 mt-2">
+                <h1 className="serif" style={{ fontSize: 'clamp(18px,3vw,24px)', fontWeight: 500, color: 'var(--ink)', letterSpacing: '-0.01em' }}>
+                  {lf(locale, ASSET as Record<string, unknown>, 'name')}
+                </h1>
+                <p className="mono" style={{ fontSize: 11, color: 'var(--muted)', marginTop: 3, letterSpacing: '.08em' }}>
+                  {t.assetDetail.idLabel}: {ASSET.id} · {assetTypeLabel(ASSET.type)}
+                </p>
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
                   <StatusBadge status={ASSET.status.toLowerCase()} />
-                  <span className={`badge ${ASSET.criticality === 'Critical' ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'}`}>
-                    {t.criticality}: {(t.severity as Record<string, string>)[ASSET.criticality.toLowerCase()] ?? ASSET.criticality}
-                  </span>
+                  <SeverityBadge severity={ASSET.criticality.toLowerCase()} />
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5 pt-5 border-t border-gray-100">
-              <div>
-                <p className="text-xs text-gray-500">{t.plant} / {t.zone}</p>
-                <p className="text-sm font-medium text-gray-800 mt-0.5">{t.reportContent.taoyuanPlant} / {t.reportContent.zoneUtilityRoom}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">{t.assetDetail.manufacturer}</p>
-                <p className="text-sm font-medium text-gray-800 mt-0.5">{ASSET.manufacturer}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">{t.assetDetail.installDate}</p>
-                <p className="text-sm font-medium text-gray-800 mt-0.5">{ASSET.installDate}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">{t.owner}</p>
-                <p className="text-sm font-medium text-gray-800 mt-0.5">{(t.teams as Record<string, string>)[teamKey(ASSET.owner)] ?? ASSET.owner}</p>
-              </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5 pt-5" style={{ borderTop: '1px solid var(--rule)' }}>
+              {[
+                { label: `${t.plant} / ${t.zone}`, value: `${t.reportContent.taoyuanPlant} / ${t.reportContent.zoneUtilityRoom}` },
+                { label: t.assetDetail.manufacturer, value: ASSET.manufacturer },
+                { label: t.assetDetail.installDate, value: ASSET.installDate },
+                { label: t.owner, value: (t.teams as Record<string, string>)[teamKey(ASSET.owner)] ?? ASSET.owner },
+              ].map((item, i) => (
+                <div key={i}>
+                  <p className="section-label">{item.label}</p>
+                  <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink-2)', marginTop: 3 }}>{item.value}</p>
+                </div>
+              ))}
             </div>
           </div>
 
           {/* Risk Score Gauge */}
-          <div className="flex-shrink-0 flex flex-col items-center justify-center bg-gray-50 rounded-xl p-6 min-w-[160px]">
-            <p className="text-xs text-gray-500 mb-2">{t.riskScore}</p>
+          <div className="flex-shrink-0 flex flex-col items-center justify-center p-5" style={{ border: '1px solid var(--rule)', background: 'var(--canvas)', minWidth: 140 }}>
+            <p className="section-label mb-2">{t.riskScore}</p>
             <div className="relative w-24 h-24">
               <svg viewBox="0 0 100 100" className="w-24 h-24 -rotate-90">
-                <circle cx="50" cy="50" r="40" stroke="#e5e7eb" strokeWidth="10" fill="none" />
+                <circle cx="50" cy="50" r="40" stroke="var(--rule)" strokeWidth="10" fill="none" />
                 <circle
                   cx="50" cy="50" r="40"
-                  stroke={ASSET.riskScore >= 80 ? '#dc2626' : ASSET.riskScore >= 60 ? '#ea580c' : '#d97706'}
+                  stroke={riskColor(ASSET.riskScore)}
                   strokeWidth="10" fill="none"
                   strokeDasharray={`${(ASSET.riskScore / 100) * 251.2} 251.2`}
-                  strokeLinecap="round"
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className={`text-2xl font-bold ${riskColor(ASSET.riskScore)}`}>{ASSET.riskScore}</span>
+                <span className="serif" style={{ fontSize: 26, lineHeight: 1, color: riskColor(ASSET.riskScore), fontVariationSettings: '"opsz" 48' }}>
+                  {ASSET.riskScore}
+                </span>
               </div>
             </div>
-            <p className="text-xs text-gray-500 mt-2">{t.assetDetail.outOf100}</p>
+            <p className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 6, letterSpacing: '.12em' }}>{t.assetDetail.outOf100}</p>
             <div className="flex items-center gap-1 mt-1">
-              <TrendingUp className="w-3.5 h-3.5 text-red-500" />
-              <span className="text-xs text-red-600 font-medium">{t.assetDetail.trendUp30}</span>
+              <TrendingUp size={12} style={{ color: 'var(--flag)' }} />
+              <span className="mono" style={{ fontSize: 10, color: 'var(--flag)', letterSpacing: '.08em' }}>{t.assetDetail.trendUp30}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1 overflow-x-auto">
+      <div className="flex items-center gap-0 overflow-x-auto" style={{ borderBottom: '1px solid var(--rule)' }}>
         {tabs.map(tab => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-              activeTab === tab.key
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
+            className="flex items-center gap-2 mono"
+            style={{
+              padding: '10px 16px',
+              fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase',
+              whiteSpace: 'nowrap', cursor: 'pointer', border: 'none', background: 'transparent',
+              color: activeTab === tab.key ? 'var(--ink)' : 'var(--muted)',
+              borderBottom: activeTab === tab.key ? '2px solid var(--rust)' : '2px solid transparent',
+              marginBottom: -1,
+              transition: 'all .15s',
+            }}
           >
             {tab.icon}
-            {tab.label}
+            <span className="hidden sm:inline">{tab.label}</span>
           </button>
         ))}
       </div>
@@ -182,51 +197,42 @@ export default function AssetDetail() {
           <div className="xl:col-span-2 space-y-4">
             {/* Latest Inspection Summary */}
             <div className="card p-5">
-              <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-blue-600" />
-                {t.assetDetail.latestInspectionSummary}
+              <h3 className="mono" style={{ fontSize: 10.5, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Clock size={13} /> {t.assetDetail.latestInspectionSummary}
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                <div>
-                  <p className="text-xs text-gray-500">{t.assetDetail.date}</p>
-                  <p className="text-sm font-medium text-gray-800 mt-0.5">{ASSET.lastInspection}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">{t.inspector}</p>
-                  <p className="text-sm font-medium text-gray-800 mt-0.5">{t.reportContent.inspectorWangMeiLing}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">{t.type}</p>
-                  <p className="text-sm font-medium text-gray-800 mt-0.5">{t.tasks.types.routine}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">{t.assetDetail.findingsTally}</p>
-                  <p className="text-sm font-bold text-red-600 mt-0.5">3 (1 {t.severity.critical})</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">{t.assetDetail.statusHeader}</p>
-                  <StatusBadge status="submitted" className="mt-0.5" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">{t.assetDetail.nextInspection}</p>
-                  <p className="text-sm font-medium text-orange-600 mt-0.5">{ASSET.nextInspection}</p>
-                </div>
+                {[
+                  { label: t.assetDetail.date, value: ASSET.lastInspection },
+                  { label: t.inspector, value: t.reportContent.inspectorWangMeiLing },
+                  { label: t.type, value: t.tasks.types.routine },
+                  { label: t.assetDetail.findingsTally, value: `3 (1 ${t.severity.critical})`, color: 'var(--flag)' },
+                  { label: t.assetDetail.statusHeader, value: <StatusBadge status="submitted" /> },
+                  { label: t.assetDetail.nextInspection, value: ASSET.nextInspection, color: 'var(--rust)' },
+                ].map((item, i) => (
+                  <div key={i}>
+                    <p className="section-label">{item.label}</p>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: (item as { color?: string }).color ?? 'var(--ink-2)', marginTop: 3 }}>
+                      {item.value}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
             {/* Risk Score Trend Chart */}
             <div className="card p-5">
-              <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.assetDetail.riskTrend}</h3>
+              <h3 className="mono" style={{ fontSize: 10.5, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 14 }}>
+                {t.assetDetail.riskTrend}
+              </h3>
               <ResponsiveContainer width="100%" height={200}>
                 <LineChart data={riskScoreTrend.map(d => ({ ...d, dateLabel: lf(locale, d as Record<string, unknown>, 'date') }))}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="dateLabel" tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false} domain={[0, 100]} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                    formatter={(value) => [value, t.riskScore]}
-                  />
-                  <Line type="monotone" dataKey="score" stroke="#dc2626" strokeWidth={2.5} dot={{ fill: '#dc2626', r: 4 }} activeDot={{ r: 6 }} />
+                  <CartesianGrid strokeDasharray="0" stroke="var(--rule-2)" vertical={false} />
+                  <XAxis dataKey="dateLabel" tick={{ fontSize: 10, fill: 'var(--muted)', fontFamily: "'IBM Plex Mono',monospace" }} axisLine={{ stroke: 'var(--rule)' }} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: 'var(--muted)', fontFamily: "'IBM Plex Mono',monospace" }} axisLine={false} tickLine={false} domain={[0, 100]} />
+                  <Tooltip contentStyle={tooltipStyle} formatter={(value) => [value, t.riskScore]} />
+                  <Line type="monotone" dataKey="score" stroke="var(--flag)" strokeWidth={1.5}
+                    dot={{ fill: 'var(--paper)', stroke: 'var(--flag)', strokeWidth: 1.5, r: 3 }}
+                    activeDot={{ r: 5, fill: 'var(--flag)' }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -235,22 +241,23 @@ export default function AssetDetail() {
           {/* AI Health Summary */}
           <div className="card p-5">
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Brain className="w-4 h-4 text-white" />
+              <div style={{ width: 28, height: 28, border: '1px solid var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Brain size={14} style={{ color: 'var(--ink)' }} />
               </div>
-              <h3 className="text-sm font-semibold text-gray-900">{t.assetDetail.aiHealthSummary}</h3>
+              <h3 className="mono" style={{ fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+                {t.assetDetail.aiHealthSummary}
+              </h3>
             </div>
-            <div className="space-y-3">
-              {aiInsights.map((insight, i) => (
-                <div key={i} className={`p-3 rounded-lg text-xs leading-snug ${
-                  insight.type === 'critical' ? 'bg-red-50 text-red-800 border border-red-100' :
-                  insight.type === 'high' ? 'bg-orange-50 text-orange-800 border border-orange-100' :
-                  insight.type === 'medium' ? 'bg-yellow-50 text-yellow-800 border border-yellow-100' :
-                  'bg-blue-50 text-blue-800 border border-blue-100'
-                }`}>
-                  {insight.text}
-                </div>
-              ))}
+            <div className="space-y-2">
+              {aiInsights.map((insight, i) => {
+                const c = aiInsightColor(insight.type)
+                return (
+                  <div key={i} style={{ display: 'flex', gap: 10, padding: '10px 12px', border: `1px solid ${c}`, borderLeft: `3px solid ${c}` }}>
+                    <div style={{ width: 3, background: c, flexShrink: 0, alignSelf: 'stretch' }} />
+                    <p style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--ink-2)' }}>{insight.text}</p>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>
@@ -258,114 +265,138 @@ export default function AssetDetail() {
 
       {activeTab === 'components' && (
         <div className="card overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900">{t.assetDetail.componentStatus}</h3>
+          <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--rule)' }}>
+            <h3 className="mono" style={{ fontSize: 10.5, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+              {t.assetDetail.componentStatus}
+            </h3>
           </div>
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200 text-xs text-gray-500">
-                <th className="text-left px-5 py-3 font-medium">{t.assetDetail.componentName}</th>
-                <th className="text-left px-3 py-3 font-medium">{t.assetDetail.componentType}</th>
-                <th className="text-left px-3 py-3 font-medium">{t.assetDetail.condition}</th>
-                <th className="text-left px-3 py-3 font-medium">{t.assetDetail.lastChecked}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {assetComponents.map(c => (
-                <tr key={c.id} className="hover:bg-gray-50">
-                  <td className="px-5 py-3.5 text-sm font-medium text-gray-800">{lf(locale, c as Record<string, unknown>, 'name')}</td>
-                  <td className="px-3 py-3.5 text-sm text-gray-600">{lf(locale, c as Record<string, unknown>, 'type')}</td>
-                  <td className="px-3 py-3.5">
-                    <span className={`badge ${conditionStyle(c.condition)}`}>{conditionLabel(c.condition)}</span>
-                  </td>
-                  <td className="px-3 py-3.5 text-sm text-gray-600">{c.lastChecked}</td>
+          <div className="overflow-x-auto">
+            <table className="nordic w-full">
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left', padding: '10px 20px' }}>{t.assetDetail.componentName}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.assetDetail.componentType}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.assetDetail.condition}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.assetDetail.lastChecked}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {assetComponents.map(c => (
+                  <tr key={c.id}>
+                    <td style={{ padding: '12px 20px', fontWeight: 500, color: 'var(--ink)' }}>
+                      {lf(locale, c as Record<string, unknown>, 'name')}
+                    </td>
+                    <td style={{ padding: '12px', color: 'var(--muted)' }}>{lf(locale, c as Record<string, unknown>, 'type')}</td>
+                    <td style={{ padding: '12px' }}>
+                      <span className="badge" style={{ color: conditionColor(c.condition), borderColor: conditionColor(c.condition) }}>
+                        {conditionLabel(c.condition)}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px', color: 'var(--muted)' }}>{c.lastChecked}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
       {activeTab === 'history' && (
         <div className="card overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900">{t.assetDetail.tabs.inspectionHistory}</h3>
+          <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--rule)' }}>
+            <h3 className="mono" style={{ fontSize: 10.5, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+              {t.assetDetail.tabs.inspectionHistory}
+            </h3>
           </div>
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200 text-xs text-gray-500">
-                <th className="text-left px-5 py-3 font-medium">{t.tasks.taskId}</th>
-                <th className="text-left px-3 py-3 font-medium">{t.assetDetail.dateHeader}</th>
-                <th className="text-left px-3 py-3 font-medium">{t.assetDetail.typeHeader}</th>
-                <th className="text-left px-3 py-3 font-medium">{t.inspector}</th>
-                <th className="text-left px-3 py-3 font-medium">{t.findings}</th>
-                <th className="text-left px-3 py-3 font-medium">{t.assetDetail.statusHeader}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {inspectionHistory.map(h => (
-                <tr key={h.id} className="hover:bg-gray-50">
-                  <td className="px-5 py-3.5">
-                    <Link to={`/tasks/${h.id}/execute`} className="text-sm font-mono text-blue-600 hover:text-blue-700">{h.id}</Link>
-                  </td>
-                  <td className="px-3 py-3.5 text-sm text-gray-600">{h.date}</td>
-                  <td className="px-3 py-3.5 text-sm text-gray-600">{typeLabel(h.typeKey)}</td>
-                  <td className="px-3 py-3.5 text-sm text-gray-600">{h.inspector}</td>
-                  <td className="px-3 py-3.5">
-                    <span className={`text-sm font-medium ${h.findings > 0 ? 'text-orange-600' : 'text-green-600'}`}>
-                      {h.findings} {t.findings.toLowerCase()}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3.5"><StatusBadge status={h.status} /></td>
+          <div className="overflow-x-auto">
+            <table className="nordic w-full">
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left', padding: '10px 20px' }}>{t.tasks.taskId}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.assetDetail.dateHeader}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.assetDetail.typeHeader}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.inspector}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.findings}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.assetDetail.statusHeader}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {inspectionHistory.map(h => (
+                  <tr key={h.id}>
+                    <td style={{ padding: '12px 20px' }}>
+                      <Link to={`/tasks/${h.id}/execute`} className="mono"
+                        style={{ fontSize: 12, color: 'var(--rust)', textDecoration: 'none', borderBottom: '1px dashed var(--rule)' }}>
+                        {h.id}
+                      </Link>
+                    </td>
+                    <td style={{ padding: '12px', color: 'var(--muted)' }}>{h.date}</td>
+                    <td style={{ padding: '12px', color: 'var(--muted)' }}>{typeLabel(h.typeKey)}</td>
+                    <td style={{ padding: '12px', color: 'var(--muted)' }}>{h.inspector}</td>
+                    <td style={{ padding: '12px' }}>
+                      <span className="mono" style={{ fontSize: 12, color: h.findings > 0 ? 'var(--rust)' : 'var(--moss)', fontWeight: 500 }}>
+                        {h.findings} {t.findings.toLowerCase()}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px' }}><StatusBadge status={h.status} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
       {activeTab === 'findings' && (
         <div className="card overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900">{t.findings} — {lf(locale, ASSET as Record<string, unknown>, 'name')}</h3>
+          <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--rule)' }}>
+            <h3 className="mono" style={{ fontSize: 10.5, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+              {t.findings} — {lf(locale, ASSET as Record<string, unknown>, 'name')}
+            </h3>
           </div>
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200 text-xs text-gray-500">
-                <th className="text-left px-5 py-3 font-medium">{t.assetDetail.idHeader}</th>
-                <th className="text-left px-3 py-3 font-medium">{t.assetDetail.titleHeader}</th>
-                <th className="text-left px-3 py-3 font-medium">{t.assetDetail.categoryHeader}</th>
-                <th className="text-left px-3 py-3 font-medium">{t.assetDetail.severityHeader}</th>
-                <th className="text-left px-3 py-3 font-medium">{t.discoveryDate}</th>
-                <th className="text-left px-3 py-3 font-medium">{t.assetDetail.statusHeader}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {assetFindings.map(f => (
-                <tr key={f.id} className="hover:bg-gray-50">
-                  <td className="px-5 py-3.5">
-                    <Link to={`/findings/${f.id}`} className="text-sm font-mono text-blue-600 hover:text-blue-700">{f.id}</Link>
-                  </td>
-                  <td className="px-3 py-3.5 text-sm text-gray-800 max-w-xs">
-                    <div className="truncate">{lf(locale, f as Record<string, unknown>, 'title')}</div>
-                  </td>
-                  <td className="px-3 py-3.5 text-sm text-gray-600">
-                    {(t.findingCategory as Record<string, string>)[f.category] ?? f.category}
-                  </td>
-                  <td className="px-3 py-3.5"><SeverityBadge severity={f.severity} /></td>
-                  <td className="px-3 py-3.5 text-sm text-gray-600">{f.discoveryDate}</td>
-                  <td className="px-3 py-3.5"><StatusBadge status={f.status} /></td>
+          <div className="overflow-x-auto">
+            <table className="nordic w-full">
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left', padding: '10px 20px' }}>{t.assetDetail.idHeader}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.assetDetail.titleHeader}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.assetDetail.categoryHeader}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.assetDetail.severityHeader}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.discoveryDate}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.assetDetail.statusHeader}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {assetFindings.map(f => (
+                  <tr key={f.id}>
+                    <td style={{ padding: '12px 20px' }}>
+                      <Link to={`/findings/${f.id}`} className="mono"
+                        style={{ fontSize: 12, color: 'var(--rust)', textDecoration: 'none', borderBottom: '1px dashed var(--rule)' }}>
+                        {f.id}
+                      </Link>
+                    </td>
+                    <td style={{ padding: '12px', color: 'var(--ink-2)', maxWidth: 240 }}>
+                      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {lf(locale, f as Record<string, unknown>, 'title')}
+                      </div>
+                    </td>
+                    <td style={{ padding: '12px', color: 'var(--muted)' }}>
+                      {(t.findingCategory as Record<string, string>)[f.category] ?? f.category}
+                    </td>
+                    <td style={{ padding: '12px' }}><SeverityBadge severity={f.severity} /></td>
+                    <td style={{ padding: '12px', color: 'var(--muted)' }}>{f.discoveryDate}</td>
+                    <td style={{ padding: '12px' }}><StatusBadge status={f.status} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
       {activeTab === 'documents' && (
         <div className="card p-10 flex flex-col items-center justify-center text-center">
-          <FileText className="w-12 h-12 text-gray-300 mb-3" />
-          <p className="text-gray-500 text-sm">{t.assetDetail.noDocuments}</p>
+          <FileText size={40} style={{ color: 'var(--rule)', marginBottom: 12 }} strokeWidth={1} />
+          <p style={{ color: 'var(--muted)', fontSize: 13 }}>{t.assetDetail.noDocuments}</p>
           <button className="btn-secondary mt-4">{t.assetDetail.uploadDocument}</button>
         </div>
       )}

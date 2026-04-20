@@ -23,37 +23,58 @@ export default function MobileInspection() {
     setResults(prev => ({ ...prev, [id]: prev[id] === val ? null : val }))
   }
 
+  const itemBg = (id: string) => {
+    if (results[id] === 'pass') return { border: '1px solid var(--moss)', background: 'rgba(122,138,90,0.06)' }
+    if (results[id] === 'fail') return { border: '1px solid var(--flag)', background: 'rgba(168,62,43,0.06)' }
+    if (results[id] === 'attention') return { border: '1px solid var(--ochre)', background: 'rgba(200,154,60,0.06)' }
+    return { border: '1px solid var(--rule)', background: 'var(--canvas)' }
+  }
+
+  const btnActive = (id: string, val: CheckResult, activeColor: string) =>
+    results[id] === val
+      ? { background: activeColor, color: 'var(--paper)', border: `1px solid ${activeColor}` }
+      : { background: 'transparent', color: 'var(--muted)', border: '1px solid var(--rule)' }
+
+  const severityBtnStyle = (sev: string) => {
+    const colors: Record<string, string> = {
+      critical: 'var(--flag)', high: 'var(--rust)', medium: 'var(--ochre)', low: 'var(--moss)',
+    }
+    const c = colors[sev] ?? 'var(--steel)'
+    return { flex: 1, padding: '10px 4px', border: `1px solid ${c}`, color: c, background: 'transparent', cursor: 'pointer', fontSize: 11, fontFamily: 'inherit', letterSpacing: '.06em', textTransform: 'uppercase' as const }
+  }
+
   return (
-    <div className="p-6 flex justify-center">
+    <div className="p-4 sm:p-6 flex justify-center">
       <div className="w-full max-w-sm">
         {/* Mobile frame hint */}
         <div className="mb-4 text-center">
-          <span className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-full">
-            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+          <span className="badge" style={{ color: 'var(--steel)', borderColor: 'var(--steel)' }}>
+            <span style={{ width: 6, height: 6, background: 'var(--steel)', display: 'inline-block', animation: 'pulse 2s infinite' }} />
             {t.mobile.mobileView}
           </span>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+        {/* Phone shell */}
+        <div className="overflow-hidden" style={{ border: '1px solid var(--rule)', background: 'var(--card)' }}>
           {/* Mobile Top Bar */}
-          <div className="bg-slate-900 px-4 py-3 flex items-center justify-between">
-            <Link to="/tasks" className="text-white/70 hover:text-white transition-colors">
-              <ArrowLeft className="w-5 h-5" />
+          <div className="px-4 py-3 flex items-center justify-between" style={{ background: '#15181a' }}>
+            <Link to="/tasks" style={{ color: '#cdd0cf', display: 'flex' }}>
+              <ArrowLeft size={18} />
             </Link>
             <div className="text-center">
-              <p className="text-white text-sm font-semibold">IT-2024-0312</p>
-              <p className="text-slate-400 text-xs">CP-104 · {t.tasks.types.followUp}</p>
+              <p className="mono" style={{ fontSize: 12, fontWeight: 600, color: '#f2efe9', letterSpacing: '.04em' }}>IT-2024-0312</p>
+              <p className="mono" style={{ fontSize: 10, color: '#7a7e80', letterSpacing: '.1em' }}>CP-104 · {t.tasks.types.followUp}</p>
             </div>
-            <button onClick={() => setIsOnline(!isOnline)} className="flex items-center gap-1">
+            <button onClick={() => setIsOnline(!isOnline)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
               {isOnline ? (
                 <div className="flex items-center gap-1">
-                  <Wifi className="w-4 h-4 text-green-400" />
-                  <span className="text-xs text-green-400">{t.mobile.syncStatus}</span>
+                  <Wifi size={14} style={{ color: '#7a8a5a' }} />
+                  <span className="mono" style={{ fontSize: 10, color: '#7a8a5a', letterSpacing: '.08em' }}>{t.mobile.syncStatus}</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-1">
-                  <WifiOff className="w-4 h-4 text-orange-400" />
-                  <span className="text-xs text-orange-400">{t.mobile.offline}</span>
+                  <WifiOff size={14} style={{ color: 'var(--ochre)' }} />
+                  <span className="mono" style={{ fontSize: 10, color: 'var(--ochre)', letterSpacing: '.08em' }}>{t.mobile.offline}</span>
                 </div>
               )}
             </button>
@@ -61,102 +82,77 @@ export default function MobileInspection() {
 
           {/* Offline Banner */}
           {!isOnline && (
-            <div className="bg-orange-50 border-b border-orange-200 px-4 py-2">
-              <p className="text-xs text-orange-700 text-center">{t.mobile.offlineNotice}</p>
+            <div style={{ background: 'rgba(200,154,60,0.1)', borderBottom: '1px solid var(--ochre)', padding: '8px 16px' }}>
+              <p className="mono" style={{ fontSize: 10.5, color: 'var(--ochre)', textAlign: 'center', letterSpacing: '.1em' }}>{t.mobile.offlineNotice}</p>
             </div>
           )}
 
           {/* Task Summary Card */}
-          <div className="m-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
+          <div className="m-3 p-3" style={{ background: 'var(--canvas)', border: '1px solid var(--rule)' }}>
             <div className="flex items-start justify-between mb-2">
               <div>
-                <p className="text-xs text-blue-600 font-medium uppercase tracking-wide">{t.mobile.taskSummary}</p>
-                <p className="text-sm font-bold text-gray-900 mt-0.5">{t.reportContent.coolingPumpCP104}</p>
-                <p className="text-xs text-gray-500">{t.reportContent.zoneUtilityRoom} · {t.reportContent.taoyuanPlant}</p>
+                <p className="section-label">{t.mobile.taskSummary}</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', marginTop: 3 }}>{t.reportContent.coolingPumpCP104}</p>
+                <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 1 }}>{t.reportContent.zoneUtilityRoom} · {t.reportContent.taoyuanPlant}</p>
               </div>
-              <span className="badge bg-red-100 text-red-700 text-xs">{t.severity.critical}</span>
+              <span className="badge" style={{ color: 'var(--flag)', borderColor: 'var(--flag)' }}>{t.severity.critical}</span>
             </div>
-            <div className="flex items-center justify-between text-xs mt-2">
-              <span className="text-gray-500">{t.mobile.due} <span className="text-red-600 font-medium">2024-03-12</span></span>
-              <span className="text-gray-500">{t.mobile.inspectorShort} {t.reportContent.inspectorWangShort}</span>
+            <div className="flex items-center justify-between mono" style={{ fontSize: 10.5, marginTop: 8, color: 'var(--muted)', letterSpacing: '.08em' }}>
+              <span>{t.mobile.due} <span style={{ color: 'var(--flag)', fontWeight: 600 }}>2024-03-12</span></span>
+              <span>{t.mobile.inspectorShort} {t.reportContent.inspectorWangShort}</span>
             </div>
           </div>
 
           {/* Progress Bar */}
           <div className="px-4 pb-3">
-            <div className="flex items-center justify-between text-xs mb-1.5">
-              <span className="text-gray-600 font-medium">{t.mobile.progressLabel}</span>
-              <span className="font-bold text-gray-900">{completed}/{total}</span>
+            <div className="flex items-center justify-between mono mb-1.5" style={{ fontSize: 10.5, letterSpacing: '.1em' }}>
+              <span style={{ color: 'var(--muted)' }}>{t.mobile.progressLabel}</span>
+              <span style={{ fontWeight: 700, color: 'var(--ink)' }}>{completed}/{total}</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="h-2 rounded-full bg-blue-500 transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              ></div>
+            <div style={{ height: 3, background: 'var(--rule-2)', position: 'relative' }}>
+              <div style={{ position: 'absolute', inset: 0, width: `${progress}%`, background: progress === 100 ? 'var(--moss)' : 'var(--rust)', transition: 'width .3s' }} />
             </div>
-            <p className="text-xs text-gray-400 mt-1">{progress}% {t.execution.completedOf} {total} {t.execution.items}</p>
+            <p className="mono" style={{ fontSize: 10, color: 'var(--stone)', marginTop: 4, letterSpacing: '.08em' }}>
+              {progress}% {t.execution.completedOf} {total} {t.execution.items}
+            </p>
           </div>
 
           {/* Checklist */}
-          <div className="px-3 pb-3 space-y-2 max-h-[400px] overflow-y-auto">
-            <p className="text-xs font-semibold text-gray-700 px-1 uppercase tracking-wide">{t.execution.checklistSection}</p>
+          <div className="px-3 pb-3 space-y-2" style={{ maxHeight: 400, overflowY: 'auto' }}>
+            <p className="section-label px-1">{t.execution.checklistSection}</p>
             {checklistItems.slice(0, 6).map(item => (
-              <div
-                key={item.id}
-                className={`rounded-xl border p-3 transition-colors ${
-                  results[item.id] === 'pass' ? 'bg-green-50 border-green-200' :
-                  results[item.id] === 'fail' ? 'bg-red-50 border-red-200' :
-                  results[item.id] === 'attention' ? 'bg-yellow-50 border-yellow-200' :
-                  'bg-gray-50 border-gray-200'
-                }`}
-              >
-                <p className="text-sm font-medium text-gray-900 mb-2 leading-snug">{lf(locale, item as Record<string, unknown>, 'item')}</p>
+              <div key={item.id} className="p-3 transition-all" style={{ ...itemBg(item.id) }}>
+                <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', marginBottom: 8, lineHeight: 1.4 }}>
+                  {lf(locale, item as Record<string, unknown>, 'item')}
+                </p>
                 {/* Large touch targets */}
                 <div className="grid grid-cols-3 gap-1.5">
-                  <button
-                    onClick={() => setResult(item.id, 'pass')}
-                    className={`flex items-center justify-center gap-1 py-2.5 rounded-lg text-xs font-semibold border transition-all active:scale-95 ${
-                      results[item.id] === 'pass'
-                        ? 'bg-green-500 text-white border-transparent shadow'
-                        : 'bg-white text-green-700 border-green-200 hover:bg-green-50'
-                    }`}
-                  >
-                    <CheckCircle className="w-3.5 h-3.5" />
-                    {t.execution.pass}
-                  </button>
-                  <button
-                    onClick={() => setResult(item.id, 'attention')}
-                    className={`flex items-center justify-center gap-1 py-2.5 rounded-lg text-xs font-semibold border transition-all active:scale-95 ${
-                      results[item.id] === 'attention'
-                        ? 'bg-yellow-500 text-white border-transparent shadow'
-                        : 'bg-white text-yellow-700 border-yellow-200 hover:bg-yellow-50'
-                    }`}
-                  >
-                    <AlertTriangle className="w-3.5 h-3.5" />
-                    {t.mobile.attention}
-                  </button>
-                  <button
-                    onClick={() => setResult(item.id, 'fail')}
-                    className={`flex items-center justify-center gap-1 py-2.5 rounded-lg text-xs font-semibold border transition-all active:scale-95 ${
-                      results[item.id] === 'fail'
-                        ? 'bg-red-500 text-white border-transparent shadow'
-                        : 'bg-white text-red-700 border-red-200 hover:bg-red-50'
-                    }`}
-                  >
-                    <XCircle className="w-3.5 h-3.5" />
-                    {t.execution.fail}
-                  </button>
+                  {([['pass', 'var(--moss)', <CheckCircle key="p" size={13} />, t.execution.pass],
+                     ['attention', 'var(--ochre)', <AlertTriangle key="a" size={13} />, t.mobile.attention],
+                     ['fail', 'var(--flag)', <XCircle key="f" size={13} />, t.execution.fail]] as [string, string, React.ReactNode, string][])
+                    .map(([val, color, icon, label]) => (
+                    <button
+                      key={val}
+                      onClick={() => setResult(item.id, val as CheckResult)}
+                      className="flex items-center justify-center gap-1 mono"
+                      style={{ ...btnActive(item.id, val as CheckResult, color), padding: '10px 4px', cursor: 'pointer', fontSize: 10, letterSpacing: '.08em', textTransform: 'uppercase', transition: 'all .15s', fontFamily: 'inherit' }}
+                    >
+                      {icon}
+                      {label}
+                    </button>
+                  ))}
                 </div>
                 <button
                   onClick={() => setExpandedNote(expandedNote === item.id ? null : item.id)}
-                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600 mt-2 transition-colors"
+                  className="flex items-center gap-1 mono mt-2"
+                  style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '.1em', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase' }}
                 >
-                  <ChevronDown className={`w-3 h-3 transition-transform ${expandedNote === item.id ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={11} style={{ transform: expandedNote === item.id ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
                   {expandedNote === item.id ? t.mobile.hideNotes : t.mobile.expandNotes}
                 </button>
                 {expandedNote === item.id && (
                   <textarea
-                    className="mt-2 w-full text-xs border border-gray-200 rounded-lg p-2 resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="form-input mt-2 resize-none"
                     rows={2}
                     placeholder={t.mobile.notesPlaceholder}
                     value={notes[item.id] ?? ''}
@@ -166,27 +162,37 @@ export default function MobileInspection() {
               </div>
             ))}
             {checklistItems.length > 6 && (
-              <p className="text-xs text-center text-gray-400 py-1">+{checklistItems.length - 6} {t.mobile.moreItems}</p>
+              <p className="mono text-center py-1" style={{ fontSize: 10, color: 'var(--stone)', letterSpacing: '.1em' }}>
+                +{checklistItems.length - 6} {t.mobile.moreItems}
+              </p>
             )}
           </div>
 
           {/* Bottom Action Area */}
-          <div className="border-t border-gray-100 p-3 space-y-2">
+          <div className="p-3 space-y-2" style={{ borderTop: '1px solid var(--rule)' }}>
             <div className="flex gap-2">
-              <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition-colors active:scale-95">
-                <Camera className="w-4 h-4" />
+              <button className="flex-1 btn-secondary flex items-center justify-center gap-2" style={{ padding: '12px 8px' }}>
+                <Camera size={14} />
                 {t.mobile.addPhoto}
               </button>
               <button
                 onClick={() => setShowFindingSheet(true)}
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-orange-100 hover:bg-orange-200 text-orange-700 text-sm font-medium transition-colors active:scale-95"
+                className="flex-1 flex items-center justify-center gap-2 mono"
+                style={{ padding: '12px 8px', border: '1px solid var(--rust)', color: 'var(--rust)', background: 'transparent', cursor: 'pointer', fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', fontFamily: 'inherit', transition: 'all .15s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--rust)'; e.currentTarget.style.color = 'var(--paper)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--rust)' }}
               >
-                <Plus className="w-4 h-4" />
+                <Plus size={14} />
                 {t.mobile.addFinding}
               </button>
             </div>
-            <button className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors active:scale-95">
-              <Send className="w-4 h-4" />
+            <button
+              className="w-full flex items-center justify-center gap-2 mono"
+              style={{ padding: '14px', border: '1px solid var(--ink)', color: 'var(--ink)', background: 'transparent', cursor: 'pointer', fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', fontFamily: 'inherit', transition: 'all .15s' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = 'var(--paper)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--ink)' }}
+            >
+              <Send size={14} />
               {t.mobile.submitInspection}
             </button>
           </div>
@@ -194,39 +200,37 @@ export default function MobileInspection() {
 
         {/* Quick Finding Sheet (simulated bottom sheet) */}
         {showFindingSheet && (
-          <div className="fixed inset-0 bg-black/40 z-50 flex items-end justify-center sm:items-center sm:px-4">
-            <div className="w-full max-w-sm bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl p-5">
-              <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-4 sm:hidden"></div>
-              <h3 className="text-base font-semibold text-gray-900 mb-4">{t.mobile.addFinding}</h3>
+          <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:px-4"
+            style={{ background: 'rgba(26,29,31,0.5)' }}>
+            <div className="w-full max-w-sm card p-5 sm:rounded-none">
+              <div style={{ width: 32, height: 3, background: 'var(--rule)', margin: '0 auto 16px' }} className="sm:hidden" />
+              <h3 className="mono" style={{ fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--ink)', marginBottom: 16 }}>
+                {t.mobile.addFinding}
+              </h3>
               <div className="space-y-3">
                 <input
                   type="text"
                   placeholder={t.mobile.findingTitlePlaceholder}
-                  className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="form-input"
                 />
                 <div className="grid grid-cols-2 gap-2">
                   {(['critical', 'high', 'medium', 'low'] as const).map(sev => (
-                    <button
-                      key={sev}
-                      className={`py-2.5 rounded-xl text-sm font-medium border ${
-                        sev === 'critical' ? 'border-red-200 text-red-700 bg-red-50 hover:bg-red-100' :
-                        sev === 'high' ? 'border-orange-200 text-orange-700 bg-orange-50 hover:bg-orange-100' :
-                        sev === 'medium' ? 'border-yellow-200 text-yellow-700 bg-yellow-50 hover:bg-yellow-100' :
-                        'border-green-200 text-green-700 bg-green-50 hover:bg-green-100'
-                      }`}
-                    >
+                    <button key={sev} style={severityBtnStyle(sev)} className="mono">
                       {(t.severity as Record<string, string>)[sev]}
                     </button>
                   ))}
                 </div>
-                <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 flex flex-col items-center gap-1 cursor-pointer hover:border-blue-400 transition-colors">
-                  <Camera className="w-6 h-6 text-gray-300" />
-                  <p className="text-xs text-gray-400">{t.mobile.tapToAddPhoto}</p>
+                <div style={{ border: '2px dashed var(--rule)', padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer' }}
+                  onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--rust)')}
+                  onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--rule)')}
+                >
+                  <Camera size={20} style={{ color: 'var(--stone)' }} strokeWidth={1} />
+                  <p className="mono" style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '.1em', textTransform: 'uppercase' }}>{t.mobile.tapToAddPhoto}</p>
                 </div>
               </div>
               <div className="flex gap-2 mt-4">
-                <button onClick={() => setShowFindingSheet(false)} className="flex-1 btn-secondary py-2.5 rounded-xl">{t.cancel}</button>
-                <button onClick={() => setShowFindingSheet(false)} className="flex-1 btn-primary py-2.5 rounded-xl">{t.save}</button>
+                <button onClick={() => setShowFindingSheet(false)} className="flex-1 btn-secondary">{t.cancel}</button>
+                <button onClick={() => setShowFindingSheet(false)} className="flex-1 btn-primary">{t.save}</button>
               </div>
             </div>
           </div>

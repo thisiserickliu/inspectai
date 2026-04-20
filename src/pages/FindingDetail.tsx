@@ -11,6 +11,9 @@ const FINDING = findings[0]
 
 const statusOptions = ['open', 'pending', 'inProgress', 'resolved', 'closed']
 
+const severityColor = (s: string) =>
+  s === 'critical' ? 'var(--flag)' : s === 'high' ? 'var(--rust)' : s === 'medium' ? 'var(--ochre)' : 'var(--moss)'
+
 export default function FindingDetail() {
   const { t, locale } = useI18n()
   const asset = assets.find(a => a.id === FINDING.assetId)
@@ -19,9 +22,6 @@ export default function FindingDetail() {
   const inspector = inspectors.find(i => i.name === FINDING.inspector)
   const [comment, setComment] = useState('')
   const [selectedStatus, setSelectedStatus] = useState(FINDING.status)
-
-  const severityColor = (s: string) =>
-    s === 'critical' ? 'text-red-600' : s === 'high' ? 'text-orange-600' : s === 'medium' ? 'text-yellow-600' : 'text-green-600'
 
   const categoryLabel = (cat: string) => (t.findingCategory as Record<string, string>)[cat] ?? cat
 
@@ -35,27 +35,30 @@ export default function FindingDetail() {
   const steps = [t.findingAI.step1, t.findingAI.step2, t.findingAI.step3, t.findingAI.step4]
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-5">
-        <Link to="/findings" className="hover:text-blue-600">{t.findings}</Link>
-        <ChevronRight className="w-3.5 h-3.5" />
-        <span className="text-gray-900 font-medium">{FINDING.id}</span>
+      <nav className="flex items-center gap-1.5 flex-wrap mb-5">
+        <Link to="/findings" className="mono" style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '.08em', textDecoration: 'none' }}>
+          {t.findings}
+        </Link>
+        <ChevronRight size={11} style={{ color: 'var(--muted)' }} />
+        <span className="mono" style={{ fontSize: 11, color: 'var(--ink)', fontWeight: 500, letterSpacing: '.08em' }}>{FINDING.id}</span>
       </nav>
 
       {/* Page Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <AlertTriangle className={`w-5 h-5 ${severityColor(FINDING.severity)}`} />
-            <h1 className="text-xl font-bold text-gray-900">{lf(locale, FINDING as Record<string, unknown>, 'title')}</h1>
+            <AlertTriangle size={18} style={{ color: severityColor(FINDING.severity), flexShrink: 0 }} />
+            <h1 className="serif" style={{ fontSize: 'clamp(18px,3vw,22px)', fontWeight: 500, color: 'var(--ink)', letterSpacing: '-0.01em' }}>
+              {lf(locale, FINDING as Record<string, unknown>, 'title')}
+            </h1>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-gray-500 font-mono">{FINDING.id}</span>
-            <span className="text-gray-300">·</span>
+            <span className="mono" style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '.08em' }}>{FINDING.id}</span>
             <SeverityBadge severity={FINDING.severity} />
             <StatusBadge status={FINDING.status} />
-            <span className="badge bg-gray-100 text-gray-600">{categoryLabel(FINDING.category)}</span>
+            <span className="badge" style={{ color: 'var(--muted)', borderColor: 'var(--rule)' }}>{categoryLabel(FINDING.category)}</span>
           </div>
         </div>
       </div>
@@ -65,7 +68,7 @@ export default function FindingDetail() {
         <div className="xl:col-span-2 space-y-5">
           {/* Metadata Card */}
           <div className="card p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.findingDetail.title}</h3>
+            <h3 className="section-label mb-4">{t.findingDetail.title}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {[
                 { label: t.findingDetail.findingId, value: FINDING.id },
@@ -79,8 +82,8 @@ export default function FindingDetail() {
                 { label: t.owner, value: (t.teams as Record<string, string>)[teamKey(FINDING.owner)] ?? FINDING.owner },
               ].map((item, i) => (
                 <div key={i}>
-                  <p className="text-xs text-gray-500">{item.label}</p>
-                  <p className="text-sm font-medium text-gray-800 mt-0.5">{item.value}</p>
+                  <p className="section-label">{item.label}</p>
+                  <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink-2)', marginTop: 3 }}>{item.value}</p>
                 </div>
               ))}
             </div>
@@ -88,75 +91,86 @@ export default function FindingDetail() {
 
           {/* Description */}
           <div className="card p-5 space-y-4">
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">{t.findingDetail.description}</h3>
-              <p className="text-sm text-gray-700 leading-relaxed">{lf(locale, FINDING as Record<string, unknown>, 'description')}</p>
-            </div>
-            <div className="border-t border-gray-100 pt-4">
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">{t.findingDetail.impact}</h3>
-              <p className="text-sm text-gray-700 leading-relaxed">{lf(locale, FINDING as Record<string, unknown>, 'impact')}</p>
-            </div>
-            <div className="border-t border-gray-100 pt-4">
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">{t.findingDetail.riskDescription}</h3>
-              <p className="text-sm text-gray-700 leading-relaxed">{lf(locale, FINDING as Record<string, unknown>, 'riskDescription')}</p>
-            </div>
+            {[
+              { title: t.findingDetail.description, field: 'description' },
+              { title: t.findingDetail.impact, field: 'impact' },
+              { title: t.findingDetail.riskDescription, field: 'riskDescription' },
+            ].map((sec, i) => (
+              <div key={i} className={i > 0 ? 'pt-4' : ''} style={i > 0 ? { borderTop: '1px solid var(--rule)' } : {}}>
+                <h3 className="section-label mb-2">{sec.title}</h3>
+                <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--ink-2)' }}>
+                  {lf(locale, FINDING as Record<string, unknown>, sec.field)}
+                </p>
+              </div>
+            ))}
           </div>
 
           {/* Probable Cause & Recommended Action */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div className="card p-5">
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">{t.execution.probableCause}</h3>
-              <p className="text-sm text-gray-700 leading-relaxed">{lf(locale, FINDING as Record<string, unknown>, 'probableCause')}</p>
+              <h3 className="section-label mb-2">{t.execution.probableCause}</h3>
+              <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--ink-2)' }}>
+                {lf(locale, FINDING as Record<string, unknown>, 'probableCause')}
+              </p>
             </div>
             <div className="card p-5">
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">{t.execution.recommendedAction}</h3>
-              <p className="text-sm text-gray-700 leading-relaxed">{lf(locale, FINDING as Record<string, unknown>, 'recommendedAction')}</p>
+              <h3 className="section-label mb-2">{t.execution.recommendedAction}</h3>
+              <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--ink-2)' }}>
+                {lf(locale, FINDING as Record<string, unknown>, 'recommendedAction')}
+              </p>
             </div>
           </div>
 
           {/* Photo Evidence */}
           <div className="card p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.findingDetail.photoEvidence}</h3>
+            <h3 className="section-label mb-4">{t.findingDetail.photoEvidence}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {FINDING.photos.map((_, i) => (
-                <div key={i} className="aspect-square rounded-lg overflow-hidden cursor-pointer group relative">
-                  <div className="w-full h-full bg-gradient-to-br from-gray-200 via-gray-300 to-gray-200 flex items-center justify-center">
-                    <Camera className="w-8 h-8 text-gray-400" />
-                  </div>
-                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span className="text-white text-xs font-medium">{t.findingDetail.photoCaption} {i + 1}</span>
+                <div key={i} style={{ aspectRatio: '1', background: 'var(--canvas)', border: '1px solid var(--rule)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}
+                  className="group"
+                >
+                  <Camera size={20} style={{ color: 'var(--stone)' }} strokeWidth={1} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,29,31,0.35)', opacity: 0, transition: 'opacity .15s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    className="group-hover:opacity-100">
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--paper)', letterSpacing: '.1em' }}>{t.findingDetail.photoCaption} {i + 1}</span>
                   </div>
                 </div>
               ))}
-              <div className="aspect-square rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-blue-400 transition-colors group">
-                <div className="flex flex-col items-center gap-1">
-                  <Camera className="w-6 h-6 text-gray-300 group-hover:text-blue-400 transition-colors" />
-                  <span className="text-xs text-gray-400">{t.add}</span>
-                </div>
+              <div style={{ aspectRatio: '1', border: '2px dashed var(--rule)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', gap: 4 }}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--rust)')}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--rule)')}
+              >
+                <Camera size={18} style={{ color: 'var(--stone)' }} strokeWidth={1} />
+                <span className="mono" style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '.1em', textTransform: 'uppercase' }}>{t.add}</span>
               </div>
             </div>
           </div>
 
           {/* Activity Timeline */}
           <div className="card p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.findingDetail.activityTimeline}</h3>
+            <h3 className="section-label mb-4">{t.findingDetail.activityTimeline}</h3>
             <div className="space-y-4">
               {activities.map((activity, i) => (
                 <div key={activity.id} className="flex gap-3">
                   <div className="flex flex-col items-center">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700 flex-shrink-0">
+                    <div className="mono flex items-center justify-center flex-shrink-0"
+                      style={{ width: 30, height: 30, background: 'var(--ink)', color: 'var(--paper)', fontSize: 11, letterSpacing: '.05em' }}>
                       {activity.avatar}
                     </div>
-                    {i < activities.length - 1 && <div className="w-px flex-1 bg-gray-200 mt-2"></div>}
+                    {i < activities.length - 1 && (
+                      <div style={{ width: 1, flex: 1, background: 'var(--rule)', marginTop: 4 }} />
+                    )}
                   </div>
                   <div className="flex-1 pb-4">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium text-gray-900">{activity.user}</span>
-                      <span className="text-xs text-gray-500">{(t.timeline as Record<string, string>)[activity.action]}</span>
-                      <span className="text-xs text-gray-400">{activity.time}</span>
+                      <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)' }}>{activity.user}</span>
+                      <span style={{ fontSize: 12, color: 'var(--muted)' }}>{(t.timeline as Record<string, string>)[activity.action]}</span>
+                      <span className="mono" style={{ fontSize: 10, color: 'var(--stone)', letterSpacing: '.06em' }}>{activity.time}</span>
                     </div>
                     {activity.detail && (
-                      <p className="text-sm text-gray-600 mt-1 bg-gray-50 rounded-lg px-3 py-2">{activity.detail}</p>
+                      <p style={{ fontSize: 12, color: 'var(--ink-2)', marginTop: 5, background: 'var(--canvas)', padding: '8px 12px', lineHeight: 1.5 }}>
+                        {activity.detail}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -164,7 +178,8 @@ export default function FindingDetail() {
             </div>
             {/* Add Comment */}
             <div className="mt-4 flex gap-2">
-              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+              <div className="mono flex items-center justify-center flex-shrink-0"
+                style={{ width: 30, height: 30, background: 'var(--rust)', color: 'var(--paper)', fontSize: 11, letterSpacing: '.05em' }}>
                 CW
               </div>
               <div className="flex-1 flex gap-2">
@@ -173,10 +188,10 @@ export default function FindingDetail() {
                   value={comment}
                   onChange={e => setComment(e.target.value)}
                   placeholder={t.findingDetail.addComment + '...'}
-                  className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="form-input flex-1"
                 />
-                <button className="btn-primary p-2">
-                  <Send className="w-4 h-4" />
+                <button className="btn-primary" style={{ padding: '6px 10px' }}>
+                  <Send size={13} />
                 </button>
               </div>
             </div>
@@ -188,46 +203,59 @@ export default function FindingDetail() {
           {/* AI Summary */}
           <div className="card p-5">
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Brain className="w-4 h-4 text-white" />
+              <div style={{ width: 28, height: 28, border: '1px solid var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Brain size={14} style={{ color: 'var(--ink)' }} />
               </div>
-              <h3 className="text-sm font-semibold text-gray-900">{t.findingDetail.aiAnalysis}</h3>
+              <h3 className="mono" style={{ fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+                {t.findingDetail.aiAnalysis}
+              </h3>
             </div>
             <div className="space-y-3">
-              <div className="bg-red-50 border border-red-100 rounded-lg p-3">
-                <p
-                  className="text-xs text-red-800 leading-snug"
+              {/* Analysis block */}
+              <div style={{ padding: '10px 12px', border: '1px solid var(--flag)', borderLeft: '3px solid var(--flag)', background: 'rgba(168,62,43,0.05)' }}>
+                <p className="text-xs leading-snug" style={{ color: 'var(--ink-2)', fontSize: 12 }}
                   dangerouslySetInnerHTML={{ __html: t.findingAI.analysis }}
                 />
               </div>
+              {/* Confidence */}
               <div>
-                <p className="text-xs font-medium text-gray-700 mb-1.5">{t.findingDetail.confidence}</p>
+                <p className="section-label mb-1.5">{t.findingDetail.confidence}</p>
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-gray-200 rounded-full h-2">
-                    <div className="h-2 rounded-full bg-red-500" style={{ width: '94%' }}></div>
+                  <div style={{ flex: 1, height: 3, background: 'var(--rule-2)', position: 'relative' }}>
+                    <div style={{ position: 'absolute', inset: 0, width: '94%', background: 'var(--flag)' }} />
                   </div>
-                  <span className="text-sm font-bold text-red-600">94%</span>
+                  <span className="serif" style={{ fontSize: 18, lineHeight: 1, color: 'var(--flag)', fontVariationSettings: '"opsz" 36' }}>94%</span>
                 </div>
               </div>
+              {/* Related Findings */}
               <div>
-                <p className="text-xs font-medium text-gray-700 mb-2">{t.findingDetail.relatedFindings}</p>
+                <p className="section-label mb-2">{t.findingDetail.relatedFindings}</p>
                 <div className="space-y-1.5">
                   {[
                     { id: 'FD-2024-0088', text: t.findingAI.relatedFinding1 },
                     { id: 'FD-2024-0081', text: t.findingAI.relatedFinding2 },
                   ].map(rf => (
-                    <Link key={rf.id} to={`/findings/${rf.id}`} className="flex items-center gap-2 text-xs text-blue-600 hover:text-blue-700 bg-blue-50 px-2.5 py-1.5 rounded-lg">
-                      <ArrowRight className="w-3 h-3 flex-shrink-0" />
-                      <span className="truncate">{rf.id}: {rf.text}</span>
+                    <Link key={rf.id} to={`/findings/${rf.id}`}
+                      className="flex items-center gap-2"
+                      style={{ fontSize: 12, color: 'var(--rust)', textDecoration: 'none', padding: '6px 10px', border: '1px solid var(--rule-2)' }}
+                      onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--rust)')}
+                      onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--rule-2)')}
+                    >
+                      <ArrowRight size={12} style={{ flexShrink: 0 }} />
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rf.id}: {rf.text}</span>
                     </Link>
                   ))}
                 </div>
               </div>
+              {/* Recommended Steps */}
               <div>
-                <p className="text-xs font-medium text-gray-700 mb-2">{t.findingDetail.recommendedSteps}</p>
-                <ol className="list-decimal list-inside space-y-1.5">
+                <p className="section-label mb-2">{t.findingDetail.recommendedSteps}</p>
+                <ol className="space-y-1.5">
                   {steps.map((step, i) => (
-                    <li key={i} className="text-xs text-gray-700 leading-snug">{step}</li>
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="mono flex-shrink-0" style={{ fontSize: 10, color: 'var(--rust)', width: 16, marginTop: 2 }}>{i + 1}.</span>
+                      <span style={{ fontSize: 12, color: 'var(--ink-2)', lineHeight: 1.5 }}>{step}</span>
+                    </li>
                   ))}
                 </ol>
               </div>
@@ -236,27 +264,36 @@ export default function FindingDetail() {
 
           {/* Related Asset */}
           <div className="card p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">{t.findingDetail.relatedAsset}</h3>
-            <Link to="/assets/A003" className="block p-3 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors group">
-              <p className="text-sm font-medium text-gray-900 group-hover:text-blue-700">{asset ? lf(locale, asset as Record<string, unknown>, 'name') : FINDING.asset}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{zone ? lf(locale, zone as Record<string, unknown>, 'name') : FINDING.zone} · {plant ? lf(locale, plant as Record<string, unknown>, 'name') : FINDING.plant}</p>
+            <h3 className="section-label mb-3">{t.findingDetail.relatedAsset}</h3>
+            <Link to="/assets/A003"
+              className="block p-3"
+              style={{ textDecoration: 'none', border: '1px solid var(--rule)', background: 'var(--canvas)' }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--rust)')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--rule)')}
+            >
+              <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)' }}>
+                {asset ? lf(locale, asset as Record<string, unknown>, 'name') : FINDING.asset}
+              </p>
+              <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>
+                {zone ? lf(locale, zone as Record<string, unknown>, 'name') : FINDING.zone} · {plant ? lf(locale, plant as Record<string, unknown>, 'name') : FINDING.plant}
+              </p>
               <div className="flex items-center gap-2 mt-2">
-                <div className="flex-1 bg-gray-200 rounded-full h-1.5">
-                  <div className="h-1.5 rounded-full bg-red-500" style={{ width: '88%' }}></div>
+                <div style={{ flex: 1, height: 3, background: 'var(--rule-2)', position: 'relative' }}>
+                  <div style={{ position: 'absolute', inset: 0, width: '88%', background: 'var(--flag)' }} />
                 </div>
-                <span className="text-xs font-bold text-red-600">88</span>
+                <span className="serif" style={{ fontSize: 16, lineHeight: 1, color: 'var(--flag)', fontVariationSettings: '"opsz" 36' }}>88</span>
               </div>
-              <p className="text-xs text-gray-400 mt-1">{t.findingDetail.riskScoreLabel}</p>
+              <p className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 3, letterSpacing: '.1em' }}>{t.findingDetail.riskScoreLabel}</p>
             </Link>
           </div>
 
           {/* Status Update */}
           <div className="card p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">{t.findingDetail.statusUpdate}</h3>
+            <h3 className="section-label mb-3">{t.findingDetail.statusUpdate}</h3>
             <select
               value={selectedStatus}
               onChange={e => setSelectedStatus(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white mb-3"
+              className="form-input mb-3"
             >
               {statusOptions.map(s => (
                 <option key={s} value={s}>{(t.status as Record<string, string>)[s]}</option>

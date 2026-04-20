@@ -9,6 +9,15 @@ const REPORT = reports[0]
 
 const reportFindings = findings.filter(f => f.plant === 'Taoyuan Plant')
 
+// Nordic-mapped severity colors
+const severityNordicColor = (name: string) => {
+  const lc = name.toLowerCase()
+  if (lc.includes('critical') || lc === 'critical') return 'var(--flag)'
+  if (lc.includes('high') || lc === 'high') return 'var(--rust)'
+  if (lc.includes('medium') || lc === 'medium') return 'var(--ochre)'
+  return 'var(--moss)'
+}
+
 export default function ReportDetail() {
   const { t, locale } = useI18n()
   const reportPlant = plants.find(p => p.id === REPORT.plantId)
@@ -25,16 +34,16 @@ export default function ReportDetail() {
   const reportSummary = [t.reportContent.summary1, t.reportContent.summary2, t.reportContent.summary3, t.reportContent.summary4]
 
   const severityData = [
-    { name: t.severity.critical, value: REPORT.findings.critical, color: '#dc2626' },
-    { name: t.severity.high, value: REPORT.findings.high, color: '#ea580c' },
-    { name: t.severity.medium, value: REPORT.findings.medium, color: '#d97706' },
-    { name: t.severity.low, value: REPORT.findings.low, color: '#65a30d' },
+    { name: t.severity.critical, value: REPORT.findings.critical },
+    { name: t.severity.high,     value: REPORT.findings.high },
+    { name: t.severity.medium,   value: REPORT.findings.medium },
+    { name: t.severity.low,      value: REPORT.findings.low },
   ]
 
   const scopeData = [
-    { zone: t.reportContent.zoneAssemblyA, assets: 2, types: t.reportContent.typesAssemblyA, findings: 3 },
-    { zone: t.reportContent.zoneUtilityRoom, assets: 2, types: t.reportContent.typesUtilityRoom, findings: 5 },
-    { zone: t.reportContent.zoneChemicalStorage, assets: 1, types: t.reportContent.typesChemical, findings: 1 },
+    { zone: t.reportContent.zoneAssemblyA,     assets: 2, types: t.reportContent.typesAssemblyA,   findings: 3 },
+    { zone: t.reportContent.zoneUtilityRoom,   assets: 2, types: t.reportContent.typesUtilityRoom,  findings: 5 },
+    { zone: t.reportContent.zoneChemicalStorage, assets: 1, types: t.reportContent.typesChemical,   findings: 1 },
   ]
 
   const photoData = [
@@ -45,59 +54,73 @@ export default function ReportDetail() {
   ]
 
   const nextInspections = [
-    { asset: t.reportContent.coolingPumpCP104, date: '2024-03-15', type: t.reportContent.nextType1, priority: 'critical' },
-    { asset: t.reportContent.electricalPanelEP011, date: '2024-03-18', type: t.reportContent.nextType2, priority: 'critical' },
-    { asset: t.reportContent.airCompressorAC201, date: '2024-04-08', type: t.reportContent.nextType3, priority: 'high' },
-    { asset: t.reportContent.mixingTankMT220, date: '2024-04-06', type: t.reportContent.nextType4, priority: 'medium' },
+    { asset: t.reportContent.coolingPumpCP104,       date: '2024-03-15', type: t.reportContent.nextType1, priority: 'critical' },
+    { asset: t.reportContent.electricalPanelEP011,   date: '2024-03-18', type: t.reportContent.nextType2, priority: 'critical' },
+    { asset: t.reportContent.airCompressorAC201,     date: '2024-04-08', type: t.reportContent.nextType3, priority: 'high' },
+    { asset: t.reportContent.mixingTankMT220,        date: '2024-04-06', type: t.reportContent.nextType4, priority: 'medium' },
   ]
 
+  const tooltipStyle = {
+    background: 'var(--paper)', border: '1px solid var(--ink)', borderRadius: 0,
+    fontFamily: "'IBM Plex Mono',monospace", fontSize: 11,
+  }
+  const axisProps = {
+    axisLine: false, tickLine: false,
+    tick: { fontSize: 10, fontFamily: "'IBM Plex Mono',monospace", fill: 'var(--muted)' },
+  }
+
+  const totalFindings = Object.values(REPORT.findings).reduce((a, b) => a + b, 0)
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       {/* Action Buttons */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start sm:items-center justify-between gap-4 flex-col sm:flex-row">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">{t.reportDetail.title}</h2>
-          <p className="text-sm text-gray-500 mt-0.5">{REPORT.id} · {t.reportDetail.generatedByLabel} {REPORT.generatedDate}</p>
+          <h2 className="serif" style={{ fontSize: 22, fontWeight: 500, color: 'var(--ink)', letterSpacing: '-0.01em' }}>{t.reportDetail.title}</h2>
+          <p className="mono" style={{ fontSize: 11, color: 'var(--muted)', marginTop: 3, letterSpacing: '.08em' }}>
+            {REPORT.id} · {t.reportDetail.generatedByLabel} {REPORT.generatedDate}
+          </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button className="btn-secondary flex items-center gap-2">
-            <Printer className="w-4 h-4" />
-            {t.print}
+            <Printer size={13} />{t.print}
           </button>
           <button className="btn-secondary flex items-center gap-2">
-            <Download className="w-4 h-4" />
-            {t.exportExcel}
+            <Download size={13} />{t.exportExcel}
           </button>
           <button className="btn-primary flex items-center gap-2">
-            <Download className="w-4 h-4" />
-            {t.exportPDF}
+            <Download size={13} />{t.exportPDF}
           </button>
         </div>
       </div>
 
       {/* Report Container */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        {/* Report Header */}
-        <div className="bg-gradient-to-r from-slate-900 to-blue-900 p-8 text-white">
-          <div className="flex items-start justify-between">
+      <div className="card overflow-hidden">
+        {/* Report Header — dark Nordic */}
+        <div className="p-6 sm:p-8" style={{ background: '#15181a' }}>
+          <div className="flex items-start justify-between gap-6 flex-col sm:flex-row">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-white" />
+                <div style={{ width: 36, height: 36, border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <FileText size={18} style={{ color: '#f2efe9' }} strokeWidth={1.5} />
                 </div>
                 <div>
-                  <p className="text-xs text-blue-200 uppercase tracking-wider font-medium">{t.appName}</p>
-                  <p className="text-white font-bold">{t.reportDetail.aiPlatformTagline}</p>
+                  <p className="mono" style={{ fontSize: 9.5, letterSpacing: '.22em', color: '#7a7e80', textTransform: 'uppercase' }}>{t.appName}</p>
+                  <p style={{ fontSize: 13, color: '#cdd0cf', marginTop: 1 }}>{t.reportDetail.aiPlatformTagline}</p>
                 </div>
               </div>
-              <h1 className="text-3xl font-bold tracking-tight">{t.reportDetail.title.toUpperCase()}</h1>
-              <p className="text-blue-200 mt-1 text-lg">{t.reportContent.reportTitle}</p>
+              <h1 className="serif" style={{ fontSize: 'clamp(22px,4vw,32px)', letterSpacing: '-0.02em', color: '#f2efe9', fontWeight: 500 }}>
+                {t.reportDetail.title.toUpperCase()}
+              </h1>
+              <p style={{ fontSize: 15, color: '#cdd0cf', marginTop: 4 }}>{t.reportContent.reportTitle}</p>
             </div>
-            <div className="text-right">
-              <span className="inline-block bg-green-500 text-white px-4 py-1.5 rounded-full text-sm font-semibold">{(t.status as Record<string, string>)[REPORT.status.toLowerCase()] ?? REPORT.status}</span>
+            <div>
+              <span className="badge" style={{ color: 'var(--moss)', borderColor: 'var(--moss)' }}>
+                {(t.status as Record<string, string>)[REPORT.status.toLowerCase()] ?? REPORT.status}
+              </span>
             </div>
           </div>
-          <div className="grid grid-cols-4 gap-6 mt-6 pt-6 border-t border-white/20">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6" style={{ borderTop: '1px solid rgba(255,255,255,.12)' }}>
             {[
               { label: t.reportDetail.reportId, value: REPORT.id },
               { label: t.reportDetail.generatedDate, value: REPORT.generatedDate },
@@ -105,90 +128,91 @@ export default function ReportDetail() {
               { label: t.reportDetail.period, value: lf(locale, REPORT as Record<string, unknown>, 'period') },
             ].map((item, i) => (
               <div key={i}>
-                <p className="text-xs text-blue-300 uppercase tracking-wide">{item.label}</p>
-                <p className="text-white font-semibold mt-0.5 text-sm">{item.value}</p>
+                <p className="mono" style={{ fontSize: 9.5, letterSpacing: '.18em', textTransform: 'uppercase', color: '#7a7e80' }}>{item.label}</p>
+                <p style={{ fontSize: 13, fontWeight: 500, color: '#f2efe9', marginTop: 4 }}>{item.value}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="p-8 space-y-8">
+        <div className="p-6 sm:p-8 space-y-8">
           {/* Report Metadata Table */}
           <div>
-            <h2 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Table className="w-4 h-4 text-blue-600" /> {t.reportDetail.reportInfo}
+            <h2 className="mono" style={{ fontSize: 11, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Table size={13} /> {t.reportDetail.reportInfo}
             </h2>
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <tbody className="divide-y divide-gray-100">
-                  {[
-                    { label: t.reportDetail.preparedBy, value: lf(locale, REPORT as Record<string, unknown>, 'preparedBy') },
-                    { label: t.reportDetail.approvedBy, value: lf(locale, REPORT as Record<string, unknown>, 'approvedBy') },
-                    { label: t.reportDetail.reportStatus, value: (t.status as Record<string, string>)[REPORT.status.toLowerCase()] ?? REPORT.status },
-                    { label: t.reportDetail.totalAssetsInspected, value: REPORT.totalAssetsInspected.toString() },
-                    { label: t.reportDetail.totalFindings, value: Object.values(REPORT.findings).reduce((a, b) => a + b, 0).toString() },
-                  ].map((row, i) => (
-                    <tr key={i} className={i % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                      <td className="px-4 py-2.5 font-medium text-gray-700 w-1/3">{row.label}</td>
-                      <td className="px-4 py-2.5 text-gray-900">{row.value}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <table className="nordic w-full">
+              <tbody>
+                {[
+                  { label: t.reportDetail.preparedBy, value: lf(locale, REPORT as Record<string, unknown>, 'preparedBy') },
+                  { label: t.reportDetail.approvedBy, value: lf(locale, REPORT as Record<string, unknown>, 'approvedBy') },
+                  { label: t.reportDetail.reportStatus, value: (t.status as Record<string, string>)[REPORT.status.toLowerCase()] ?? REPORT.status },
+                  { label: t.reportDetail.totalAssetsInspected, value: REPORT.totalAssetsInspected.toString() },
+                  { label: t.reportDetail.totalFindings, value: totalFindings.toString() },
+                ].map((row, i) => (
+                  <tr key={i}>
+                    <td style={{ padding: '10px 16px', fontWeight: 500, color: 'var(--muted)', width: '35%', fontSize: 12 }}>{row.label}</td>
+                    <td style={{ padding: '10px 16px', color: 'var(--ink)', fontSize: 13 }}>{row.value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
           {/* Executive Summary */}
           <div>
-            <h2 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-blue-600" /> {t.reportDetail.executiveSummary}
+            <h2 className="mono" style={{ fontSize: 11, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <CheckCircle size={13} /> {t.reportDetail.executiveSummary}
             </h2>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div style={{ padding: '14px 18px', background: 'var(--canvas)', border: '1px solid var(--rule)' }}>
               <ul className="space-y-2">
                 {reportSummary.map((point, i) => (
-                  <li key={i} className="flex items-start gap-2.5 text-sm text-blue-900">
-                    <CheckCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                    {point}
+                  <li key={i} className="flex items-start gap-2.5">
+                    <span style={{ width: 4, height: 4, background: 'var(--rust)', flexShrink: 0, marginTop: 6 }} />
+                    <span style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--ink-2)' }}>{point}</span>
                   </li>
                 ))}
               </ul>
             </div>
             {/* Key Metrics */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mt-4">
-              <div className="col-span-2 sm:col-span-1 bg-white border border-gray-200 rounded-lg p-4 text-center">
-                <p className="text-2xl font-bold text-gray-900">{REPORT.totalAssetsInspected}</p>
-                <p className="text-xs text-gray-500 mt-1">{t.reportDetail.totalAssetsInspected}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-4">
+              <div className="card col-span-2 sm:col-span-1 p-4 text-center">
+                <p className="serif" style={{ fontSize: 36, lineHeight: 1, color: 'var(--ink)', fontVariationSettings: '"opsz" 72' }}>{REPORT.totalAssetsInspected}</p>
+                <p className="section-label mt-2">{t.reportDetail.totalAssetsInspected}</p>
               </div>
-              {severityData.map(s => (
-                <div key={s.name} className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-                  <p className="text-2xl font-bold" style={{ color: s.color }}>{s.value}</p>
-                  <p className="text-xs text-gray-500 mt-1">{s.name}</p>
-                </div>
-              ))}
+              {severityData.map(s => {
+                const c = severityNordicColor(s.name)
+                return (
+                  <div key={s.name} className="card p-4 text-center">
+                    <p className="serif" style={{ fontSize: 36, lineHeight: 1, color: c, fontVariationSettings: '"opsz" 72' }}>{s.value}</p>
+                    <p className="section-label mt-2">{s.name}</p>
+                  </div>
+                )
+              })}
             </div>
           </div>
 
           {/* Inspection Scope */}
           <div>
-            <h2 className="text-base font-semibold text-gray-900 mb-3">{t.reportDetail.scope}</h2>
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200 text-xs text-gray-500">
+            <h2 className="section-label" style={{ marginBottom: 12 }}>{t.reportDetail.scope}</h2>
+            <div className="overflow-x-auto">
+              <table className="nordic w-full">
+                <thead>
                   <tr>
-                    <th className="text-left px-4 py-3 font-medium">{t.zone}</th>
-                    <th className="text-left px-4 py-3 font-medium">{t.reportDetail.assetsInspected}</th>
-                    <th className="text-left px-4 py-3 font-medium">{t.reportDetail.inspectionTypes}</th>
-                    <th className="text-left px-4 py-3 font-medium">{t.reportDetail.findingsCount}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 16px' }}>{t.zone}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.reportDetail.assetsInspected}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.reportDetail.inspectionTypes}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.reportDetail.findingsCount}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody>
                   {scopeData.map((row, i) => (
-                    <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-4 py-3 font-medium text-gray-800">{row.zone}</td>
-                      <td className="px-4 py-3 text-gray-600">{row.assets}</td>
-                      <td className="px-4 py-3 text-gray-600">{row.types}</td>
-                      <td className="px-4 py-3">
-                        <span className={`font-medium ${row.findings > 3 ? 'text-red-600' : row.findings > 1 ? 'text-orange-600' : 'text-green-600'}`}>
+                    <tr key={i}>
+                      <td style={{ padding: '12px 16px', fontWeight: 500, color: 'var(--ink)' }}>{row.zone}</td>
+                      <td style={{ padding: '12px', color: 'var(--muted)' }}>{row.assets}</td>
+                      <td style={{ padding: '12px', color: 'var(--muted)' }}>{row.types}</td>
+                      <td style={{ padding: '12px' }}>
+                        <span className="mono" style={{ fontSize: 12, fontWeight: 600, color: row.findings > 3 ? 'var(--flag)' : row.findings > 1 ? 'var(--rust)' : 'var(--moss)' }}>
                           {row.findings}
                         </span>
                       </td>
@@ -201,35 +225,44 @@ export default function ReportDetail() {
 
           {/* Findings Summary */}
           <div>
-            <h2 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-orange-600" /> {t.reportDetail.findingsSummary}
+            <h2 className="mono" style={{ fontSize: 11, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <AlertTriangle size={13} style={{ color: 'var(--rust)' }} /> {t.reportDetail.findingsSummary}
             </h2>
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200 text-xs text-gray-500">
+            <div className="overflow-x-auto">
+              <table className="nordic w-full">
+                <thead>
                   <tr>
-                    <th className="text-left px-4 py-3 font-medium">{t.reportDetail.idHeader}</th>
-                    <th className="text-left px-4 py-3 font-medium">{t.reportDetail.titleHeader}</th>
-                    <th className="text-left px-4 py-3 font-medium">{t.asset}</th>
-                    <th className="text-left px-4 py-3 font-medium">{t.reportDetail.severityHeader}</th>
-                    <th className="text-left px-4 py-3 font-medium">{t.reportDetail.categoryHeader}</th>
-                    <th className="text-left px-4 py-3 font-medium">{t.reportDetail.statusHeader}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 16px' }}>{t.reportDetail.idHeader}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.reportDetail.titleHeader}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.asset}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.reportDetail.severityHeader}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.reportDetail.categoryHeader}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.reportDetail.statusHeader}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {reportFindings.map((f, i) => (
-                    <tr key={f.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-4 py-3 font-mono text-xs text-blue-600">{f.id}</td>
-                      <td className="px-4 py-3 text-gray-800 max-w-xs">
-                        <div className="truncate">{lf(locale, f as Record<string, unknown>, 'title')}</div>
+                <tbody>
+                  {reportFindings.map(f => (
+                    <tr key={f.id}>
+                      <td style={{ padding: '12px 16px' }}>
+                        <span className="mono" style={{ fontSize: 11, color: 'var(--rust)', letterSpacing: '.04em' }}>{f.id}</span>
                       </td>
-                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{lf(locale, assets.find(a => a.id === f.assetId) as Record<string, unknown> ?? { name: f.asset }, 'name')}</td>
-                      <td className="px-4 py-3"><SeverityBadge severity={f.severity} /></td>
-                      <td className="px-4 py-3 text-gray-600">
+                      <td style={{ padding: '12px', color: 'var(--ink-2)', maxWidth: 200 }}>
+                        <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {lf(locale, f as Record<string, unknown>, 'title')}
+                        </div>
+                      </td>
+                      <td style={{ padding: '12px', color: 'var(--muted)', whiteSpace: 'nowrap' }}>
+                        {lf(locale, assets.find(a => a.id === f.assetId) as Record<string, unknown> ?? { name: f.asset }, 'name')}
+                      </td>
+                      <td style={{ padding: '12px' }}><SeverityBadge severity={f.severity} /></td>
+                      <td style={{ padding: '12px', color: 'var(--muted)' }}>
                         {(t.findingCategory as Record<string, string>)[f.category] ?? f.category}
                       </td>
-                      <td className="px-4 py-3">
-                        <span className={`badge ${f.status === 'open' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                      <td style={{ padding: '12px' }}>
+                        <span className="badge" style={{
+                          color: f.status === 'open' ? 'var(--flag)' : 'var(--moss)',
+                          borderColor: f.status === 'open' ? 'var(--flag)' : 'var(--moss)',
+                        }}>
                           {(t.status as Record<string, string>)[f.status] ?? f.status}
                         </span>
                       </td>
@@ -242,54 +275,56 @@ export default function ReportDetail() {
 
           {/* Severity Breakdown Chart */}
           <div>
-            <h2 className="text-base font-semibold text-gray-900 mb-3">{t.reportDetail.severityBreakdown}</h2>
+            <h2 className="section-label" style={{ marginBottom: 12 }}>{t.reportDetail.severityBreakdown}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={severityData} barSize={40}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }} />
-                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                    {severityData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                <BarChart data={severityData} barSize={36}>
+                  <CartesianGrid strokeDasharray="0" stroke="var(--rule-2)" vertical={false} />
+                  <XAxis dataKey="name" {...axisProps} />
+                  <YAxis {...axisProps} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Bar dataKey="value" radius={0}>
+                    {severityData.map((entry, i) => (
+                      <Cell key={i} fill={severityNordicColor(entry.name)} />
+                    ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
               <div className="space-y-3">
-                {severityData.map(s => (
-                  <div key={s.name} className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }}></div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm text-gray-700">{s.name}</span>
-                        <span className="text-sm font-bold text-gray-900">{s.value}</span>
-                      </div>
-                      <div className="w-full bg-gray-100 rounded-full h-1.5">
-                        <div
-                          className="h-1.5 rounded-full"
-                          style={{ width: `${(s.value / Object.values(REPORT.findings).reduce((a, b) => a + b, 0)) * 100}%`, backgroundColor: s.color }}
-                        ></div>
+                {severityData.map(s => {
+                  const c = severityNordicColor(s.name)
+                  return (
+                    <div key={s.name} className="flex items-center gap-3">
+                      <div style={{ width: 10, height: 10, background: c, flexShrink: 0 }} />
+                      <div style={{ flex: 1 }}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span style={{ fontSize: 13, color: 'var(--ink-2)' }}>{s.name}</span>
+                          <span className="mono" style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{s.value}</span>
+                        </div>
+                        <div style={{ width: '100%', height: 3, background: 'var(--rule-2)', position: 'relative' }}>
+                          <div style={{ position: 'absolute', inset: 0, width: `${totalFindings ? (s.value / totalFindings) * 100 : 0}%`, background: c }} />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           </div>
 
           {/* Photo Evidence */}
           <div>
-            <h2 className="text-base font-semibold text-gray-900 mb-3">{t.execution.photoEvidence}</h2>
+            <h2 className="section-label" style={{ marginBottom: 12 }}>{t.execution.photoEvidence}</h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {photoData.map((photo, i) => (
                 <div key={i} className="space-y-1.5">
-                  <div className="aspect-video rounded-lg bg-gradient-to-br from-gray-200 via-gray-300 to-gray-200 flex items-center justify-center">
-                    <div className="w-8 h-8 bg-gray-400/30 rounded-lg flex items-center justify-center mx-auto">
-                      <span className="text-gray-500 text-xs font-bold">{String.fromCharCode(65 + i)}</span>
+                  <div style={{ aspectRatio: '16/9', background: 'var(--canvas)', border: '1px solid var(--rule)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="mono" style={{ width: 28, height: 28, border: '1px solid var(--rule)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--stone)' }}>
+                      {String.fromCharCode(65 + i)}
                     </div>
                   </div>
-                  <p className="text-xs text-gray-600 font-medium">{photo.caption}</p>
-                  <p className="text-xs text-gray-400">{photo.finding}</p>
+                  <p style={{ fontSize: 11, color: 'var(--ink-2)', fontWeight: 500 }}>{photo.caption}</p>
+                  <p className="mono" style={{ fontSize: 10, color: 'var(--stone)', letterSpacing: '.06em' }}>{photo.finding}</p>
                 </div>
               ))}
             </div>
@@ -297,33 +332,40 @@ export default function ReportDetail() {
 
           {/* Corrective Actions Table */}
           <div>
-            <h2 className="text-base font-semibold text-gray-900 mb-3">{t.reportDetail.correctiveActions}</h2>
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200 text-xs text-gray-500">
+            <h2 className="section-label" style={{ marginBottom: 12 }}>{t.reportDetail.correctiveActions}</h2>
+            <div className="overflow-x-auto">
+              <table className="nordic w-full">
+                <thead>
                   <tr>
-                    <th className="text-left px-4 py-3 font-medium">{t.reportDetail.idHeader}</th>
-                    <th className="text-left px-4 py-3 font-medium">{t.reportDetail.action}</th>
-                    <th className="text-left px-4 py-3 font-medium">{t.reportDetail.priorityHeader}</th>
-                    <th className="text-left px-4 py-3 font-medium">{t.reportDetail.deadline}</th>
-                    <th className="text-left px-4 py-3 font-medium">{t.reportDetail.responsible}</th>
-                    <th className="text-left px-4 py-3 font-medium">{t.reportDetail.actionStatus}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 16px' }}>{t.reportDetail.idHeader}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.reportDetail.action}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.reportDetail.priorityHeader}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.reportDetail.deadline}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.reportDetail.responsible}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.reportDetail.actionStatus}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {correctiveActions.map((ca, i) => (
-                    <tr key={ca.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-4 py-3 font-mono text-xs text-gray-600">{ca.id}</td>
-                      <td className="px-4 py-3 text-gray-800 max-w-xs">
-                        <div className="truncate">{ca.action}</div>
+                <tbody>
+                  {correctiveActions.map(ca => (
+                    <tr key={ca.id}>
+                      <td style={{ padding: '12px 16px' }}>
+                        <span className="mono" style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '.04em' }}>{ca.id}</span>
                       </td>
-                      <td className="px-4 py-3"><SeverityBadge severity={ca.priority} /></td>
-                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
-                        <span className={ca.priority === 'critical' ? 'text-red-600 font-medium' : ''}>{ca.deadline}</span>
+                      <td style={{ padding: '12px', color: 'var(--ink-2)', maxWidth: 200 }}>
+                        <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ca.action}</div>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{ca.responsible}</td>
-                      <td className="px-4 py-3">
-                        <span className={`badge ${ca.status === 'resolved' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
+                      <td style={{ padding: '12px' }}><SeverityBadge severity={ca.priority} /></td>
+                      <td style={{ padding: '12px' }}>
+                        <span className="mono" style={{ fontSize: 11, color: ca.priority === 'critical' ? 'var(--flag)' : 'var(--muted)', letterSpacing: '.04em', fontWeight: ca.priority === 'critical' ? 600 : 400 }}>
+                          {ca.deadline}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px', color: 'var(--muted)' }}>{ca.responsible}</td>
+                      <td style={{ padding: '12px' }}>
+                        <span className="badge" style={{
+                          color: ca.status === 'resolved' ? 'var(--moss)' : 'var(--rust)',
+                          borderColor: ca.status === 'resolved' ? 'var(--moss)' : 'var(--rust)',
+                        }}>
                           {ca.status === 'resolved' ? t.reportContent.resolvedLabel : t.reportContent.openLabel}
                         </span>
                       </td>
@@ -336,36 +378,36 @@ export default function ReportDetail() {
 
           {/* AI Conclusion */}
           <div>
-            <h2 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Brain className="w-4 h-4 text-blue-600" /> {t.reportDetail.aiConclusion}
+            <h2 className="mono" style={{ fontSize: 11, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Brain size={13} /> {t.reportDetail.aiConclusion}
             </h2>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-5">
-              <p className="text-sm text-blue-900 leading-relaxed mb-4" dangerouslySetInnerHTML={{ __html: t.reportAI.p1 }} />
-              <p className="text-sm text-blue-900 leading-relaxed mb-4" dangerouslySetInnerHTML={{ __html: t.reportAI.p2 }} />
-              <p className="text-sm text-blue-900 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.reportAI.p3 }} />
+            <div style={{ padding: '18px 20px', background: 'var(--canvas)', border: '1px solid var(--rule)', borderLeft: '3px solid var(--steel)' }}>
+              <p style={{ fontSize: 13, lineHeight: 1.65, color: 'var(--ink-2)', marginBottom: 12 }} dangerouslySetInnerHTML={{ __html: t.reportAI.p1 }} />
+              <p style={{ fontSize: 13, lineHeight: 1.65, color: 'var(--ink-2)', marginBottom: 12 }} dangerouslySetInnerHTML={{ __html: t.reportAI.p2 }} />
+              <p style={{ fontSize: 13, lineHeight: 1.65, color: 'var(--ink-2)' }} dangerouslySetInnerHTML={{ __html: t.reportAI.p3 }} />
             </div>
           </div>
 
           {/* Next Recommended Inspection */}
           <div>
-            <h2 className="text-base font-semibold text-gray-900 mb-3">{t.reportDetail.nextInspection}</h2>
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200 text-xs text-gray-500">
+            <h2 className="section-label" style={{ marginBottom: 12 }}>{t.reportDetail.nextInspection}</h2>
+            <div className="overflow-x-auto">
+              <table className="nordic w-full">
+                <thead>
                   <tr>
-                    <th className="text-left px-4 py-3 font-medium">{t.asset}</th>
-                    <th className="text-left px-4 py-3 font-medium">{t.reportDetail.recommendedDate}</th>
-                    <th className="text-left px-4 py-3 font-medium">{t.reportDetail.typeHeader}</th>
-                    <th className="text-left px-4 py-3 font-medium">{t.reportDetail.priorityHeader}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 16px' }}>{t.asset}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.reportDetail.recommendedDate}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.reportDetail.typeHeader}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.reportDetail.priorityHeader}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody>
                   {nextInspections.map((rec, i) => (
-                    <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-4 py-3 font-medium text-gray-800">{rec.asset}</td>
-                      <td className="px-4 py-3 text-gray-600">{rec.date}</td>
-                      <td className="px-4 py-3 text-gray-600">{rec.type}</td>
-                      <td className="px-4 py-3"><SeverityBadge severity={rec.priority} /></td>
+                    <tr key={i}>
+                      <td style={{ padding: '12px 16px', fontWeight: 500, color: 'var(--ink)' }}>{rec.asset}</td>
+                      <td style={{ padding: '12px', color: 'var(--muted)' }}>{rec.date}</td>
+                      <td style={{ padding: '12px', color: 'var(--muted)' }}>{rec.type}</td>
+                      <td style={{ padding: '12px' }}><SeverityBadge severity={rec.priority} /></td>
                     </tr>
                   ))}
                 </tbody>
@@ -374,7 +416,8 @@ export default function ReportDetail() {
           </div>
 
           {/* Footer */}
-          <div className="border-t border-gray-200 pt-6 flex items-center justify-between text-xs text-gray-400">
+          <div className="flex items-center justify-between flex-wrap gap-2 pt-6 mono"
+            style={{ borderTop: '1px solid var(--rule)', fontSize: 10, color: 'var(--stone)', letterSpacing: '.1em' }}>
             <p>{t.reportDetail.generatedBy} · {REPORT.generatedDate} · {REPORT.id}</p>
             <p>{t.reportDetail.confidentialNotice}</p>
           </div>

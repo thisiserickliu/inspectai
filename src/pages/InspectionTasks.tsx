@@ -46,16 +46,19 @@ export default function InspectionTasks() {
     return map[type] ?? type
   }
 
+  const progressColor = (p: number) =>
+    p === 100 ? 'var(--moss)' : p > 50 ? 'var(--steel)' : p > 0 ? 'var(--ochre)' : 'var(--rule)'
+
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 sm:p-6 space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">{t.tasks.title}</h2>
-          <p className="text-sm text-gray-500 mt-0.5">{filtered.length} {t.tasks.resultCount}</p>
+          <h2 className="serif" style={{ fontSize: 22, fontWeight: 500, color: 'var(--ink)', letterSpacing: '-0.01em' }}>{t.tasks.title}</h2>
+          <p className="mono" style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2, letterSpacing: '.1em' }}>{filtered.length} {t.tasks.resultCount}</p>
         </div>
         <button className="btn-primary flex items-center gap-2">
-          <Plus className="w-4 h-4" />
+          <Plus size={12} />
           {t.newTask}
         </button>
       </div>
@@ -63,19 +66,20 @@ export default function InspectionTasks() {
       {/* Filters */}
       <div className="card p-4">
         <div className="flex items-center gap-2 mb-3">
-          <SlidersHorizontal className="w-4 h-4 text-gray-500" />
-          <span className="text-sm font-medium text-gray-700">{t.filter}</span>
+          <SlidersHorizontal size={14} style={{ color: 'var(--muted)' }} />
+          <span className="section-label">{t.filter}</span>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {/* Search */}
           <div className="relative lg:col-span-2">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--stone)' }} />
             <input
               type="text"
               placeholder={t.tasks.searchPlaceholder}
               value={search}
               onChange={e => { setSearch(e.target.value); setPage(1) }}
-              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="form-input"
+              style={{ paddingLeft: 32 }}
             />
           </div>
 
@@ -83,7 +87,7 @@ export default function InspectionTasks() {
           <select
             value={filterPlant}
             onChange={e => { setFilterPlant(e.target.value); setPage(1) }}
-            className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="form-input"
           >
             <option value="">{t.tasks.allPlants}</option>
             {plants.map(p => <option key={p.id} value={p.id}>{lf(locale, p as Record<string, unknown>, 'name')}</option>)}
@@ -93,7 +97,7 @@ export default function InspectionTasks() {
           <select
             value={filterZone}
             onChange={e => { setFilterZone(e.target.value); setPage(1) }}
-            className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="form-input"
           >
             <option value="">{t.tasks.allZones}</option>
             {zones.filter(z => !filterPlant || z.plantId === filterPlant).map(z => (
@@ -105,7 +109,7 @@ export default function InspectionTasks() {
           <select
             value={filterStatus}
             onChange={e => { setFilterStatus(e.target.value); setPage(1) }}
-            className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="form-input"
           >
             <option value="">{t.status.all}</option>
             {['scheduled', 'inProgress', 'submitted', 'overdue', 'closed'].map(s => (
@@ -117,7 +121,7 @@ export default function InspectionTasks() {
           <select
             value={filterRisk}
             onChange={e => { setFilterRisk(e.target.value); setPage(1) }}
-            className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="form-input"
           >
             <option value="">{t.tasks.allRiskLevels}</option>
             {['low', 'medium', 'high', 'critical'].map(r => (
@@ -130,77 +134,89 @@ export default function InspectionTasks() {
       {/* Table */}
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="nordic w-full">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200 text-xs text-gray-500">
-                <th className="text-left px-5 py-3.5 font-medium">{t.tasks.taskId}</th>
-                <th className="text-left px-3 py-3.5 font-medium">{t.plant}</th>
-                <th className="text-left px-3 py-3.5 font-medium">{t.zone}</th>
-                <th className="text-left px-3 py-3.5 font-medium">{t.asset}</th>
-                <th className="text-left px-3 py-3.5 font-medium">{t.tasks.inspectionType}</th>
-                <th className="text-left px-3 py-3.5 font-medium">{t.assignedTo}</th>
-                <th className="text-left px-3 py-3.5 font-medium">{t.dueDate}</th>
-                <th className="text-left px-3 py-3.5 font-medium">{t.riskLevel}</th>
-                <th className="text-left px-3 py-3.5 font-medium">{t.tasks.progress}</th>
-                <th className="text-left px-3 py-3.5 font-medium">{t.tasks.statusHeader}</th>
-                <th className="text-left px-3 py-3.5 font-medium">{t.tasks.actionsHeader}</th>
+              <tr>
+                <th style={{ textAlign: 'left', padding: '10px 20px' }}>{t.tasks.taskId}</th>
+                <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.plant}</th>
+                <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.zone}</th>
+                <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.asset}</th>
+                <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.tasks.inspectionType}</th>
+                <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.assignedTo}</th>
+                <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.dueDate}</th>
+                <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.riskLevel}</th>
+                <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.tasks.progress}</th>
+                <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.tasks.statusHeader}</th>
+                <th style={{ textAlign: 'left', padding: '10px 12px' }}>{t.tasks.actionsHeader}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="text-center py-12 text-gray-400 text-sm">
+                  <td colSpan={11} style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--stone)', fontSize: 13 }}>
                     {t.empty.noTasks}<br />
-                    <span className="text-xs mt-1 block">{t.empty.tryAdjusting}</span>
+                    <span style={{ fontSize: 11, marginTop: 4, display: 'block', color: 'var(--muted)' }}>{t.empty.tryAdjusting}</span>
                   </td>
                 </tr>
               ) : paginated.map(task => (
-                <tr key={task.id} className="hover:bg-gray-50 transition-colors group">
-                  <td className="px-5 py-3.5">
-                    <span className="text-sm font-mono font-semibold text-blue-600">{task.id}</span>
+                <tr key={task.id} className="group">
+                  <td style={{ padding: '12px 20px' }}>
+                    <Link to={`/tasks/${task.id}/execute`}
+                      className="mono"
+                      style={{ fontSize: 12, color: 'var(--rust)', letterSpacing: '.02em', textDecoration: 'none', borderBottom: '1px dashed var(--rule)' }}>
+                      {task.id}
+                    </Link>
                   </td>
-                  <td className="px-3 py-3.5 text-sm text-gray-700 whitespace-nowrap">{lf(locale, plants.find(p => p.id === task.plantId) as Record<string, unknown> ?? { name: task.plant }, 'name')}</td>
-                  <td className="px-3 py-3.5 text-sm text-gray-600 whitespace-nowrap">{lf(locale, zones.find(z => z.id === task.zoneId) as Record<string, unknown> ?? { name: task.zone }, 'name')}</td>
-                  <td className="px-3 py-3.5 text-sm text-gray-700 max-w-[160px]">
-                    <div className="truncate">{lf(locale, assets.find(a => a.id === task.assetId) as Record<string, unknown> ?? { name: task.asset }, 'name')}</div>
+                  <td style={{ padding: '12px', color: 'var(--ink-2)', fontSize: 13, whiteSpace: 'nowrap' }}>
+                    {lf(locale, plants.find(p => p.id === task.plantId) as Record<string, unknown> ?? { name: task.plant }, 'name')}
                   </td>
-                  <td className="px-3 py-3.5 text-sm text-gray-600 whitespace-nowrap">{typeLabel(task.type)}</td>
-                  <td className="px-3 py-3.5 text-sm text-gray-600 whitespace-nowrap">{lf(locale, inspectors.find(i => i.name === task.assignedTo) as Record<string, unknown> ?? { name: task.assignedTo }, 'name')}</td>
-                  <td className="px-3 py-3.5 text-sm text-gray-600 whitespace-nowrap">
-                    <span className={task.status === 'overdue' ? 'text-red-600 font-medium' : ''}>{task.dueDate}</span>
+                  <td style={{ padding: '12px', color: 'var(--muted)', fontSize: 13, whiteSpace: 'nowrap' }}>
+                    {lf(locale, zones.find(z => z.id === task.zoneId) as Record<string, unknown> ?? { name: task.zone }, 'name')}
                   </td>
-                  <td className="px-3 py-3.5">
-                    <SeverityBadge severity={task.riskLevel} />
-                  </td>
-                  <td className="px-3 py-3.5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                        <div
-                          className={`h-1.5 rounded-full ${
-                            task.progress === 100 ? 'bg-green-500' :
-                            task.progress > 50 ? 'bg-blue-500' :
-                            task.progress > 0 ? 'bg-yellow-500' : 'bg-gray-300'
-                          }`}
-                          style={{ width: `${task.progress}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-xs text-gray-500">{task.progress}%</span>
+                  <td style={{ padding: '12px', color: 'var(--ink-2)', fontSize: 13, maxWidth: 160 }}>
+                    <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {lf(locale, assets.find(a => a.id === task.assetId) as Record<string, unknown> ?? { name: task.asset }, 'name')}
                     </div>
                   </td>
-                  <td className="px-3 py-3.5">
+                  <td style={{ padding: '12px', color: 'var(--muted)', fontSize: 13, whiteSpace: 'nowrap' }}>{typeLabel(task.type)}</td>
+                  <td style={{ padding: '12px', color: 'var(--muted)', fontSize: 13, whiteSpace: 'nowrap' }}>
+                    {lf(locale, inspectors.find(i => i.name === task.assignedTo) as Record<string, unknown> ?? { name: task.assignedTo }, 'name')}
+                  </td>
+                  <td style={{ padding: '12px', fontSize: 13, whiteSpace: 'nowrap' }}>
+                    <span className="mono" style={{ fontSize: 11.5, color: task.status === 'overdue' ? 'var(--flag)' : 'var(--muted)', letterSpacing: '.04em' }}>
+                      {task.dueDate}
+                    </span>
+                  </td>
+                  <td style={{ padding: '12px' }}>
+                    <SeverityBadge severity={task.riskLevel} />
+                  </td>
+                  <td style={{ padding: '12px' }}>
+                    <div className="flex items-center gap-2">
+                      <div style={{ width: 56, height: 3, background: 'var(--rule-2)', position: 'relative', flexShrink: 0 }}>
+                        <div style={{ position: 'absolute', inset: 0, width: `${task.progress}%`, background: progressColor(task.progress) }} />
+                      </div>
+                      <span className="mono" style={{ fontSize: 10.5, color: 'var(--muted)', letterSpacing: '.04em' }}>{task.progress}%</span>
+                    </div>
+                  </td>
+                  <td style={{ padding: '12px' }}>
                     <StatusBadge status={task.status} />
                   </td>
-                  <td className="px-3 py-3.5">
+                  <td style={{ padding: '12px' }}>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Link
                         to={`/tasks/${task.id}/execute`}
-                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                        className="btn-secondary"
+                        style={{ padding: '4px 8px' }}
                         title={t.tasks.startInspection}
                       >
-                        <Play className="w-3.5 h-3.5" />
+                        <Play size={12} />
                       </Link>
-                      <button className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-md transition-colors" title={t.tasks.editTask}>
-                        <Edit2 className="w-3.5 h-3.5" />
+                      <button
+                        className="btn-secondary"
+                        style={{ padding: '4px 8px' }}
+                        title={t.tasks.editTask}
+                      >
+                        <Edit2 size={12} />
                       </button>
                     </div>
                   </td>
@@ -212,36 +228,45 @@ export default function InspectionTasks() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="px-5 py-3.5 border-t border-gray-100 flex items-center justify-between">
-            <p className="text-sm text-gray-500">
-              {t.tasks.showingOf} {(page - 1) * ITEMS_PER_PAGE + 1}–{Math.min(page * ITEMS_PER_PAGE, filtered.length)} {t.tasks.of} {filtered.length}
-            </p>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+          <div className="px-5 py-3" style={{ borderTop: '1px solid var(--rule)' }}>
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <p className="mono" style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '.08em' }}>
+                {(page - 1) * ITEMS_PER_PAGE + 1}–{Math.min(page * ITEMS_PER_PAGE, filtered.length)} / {filtered.length}
+              </p>
+              <div className="flex items-center gap-1">
                 <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  className={`w-8 h-8 rounded-md text-sm font-medium transition-colors ${
-                    p === page ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'
-                  }`}
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="btn-secondary"
+                  style={{ padding: '4px 8px', opacity: page === 1 ? 0.3 : 1 }}
                 >
-                  {p}
+                  <ChevronLeft size={14} />
                 </button>
-              ))}
-              <button
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className="mono"
+                    style={{
+                      width: 28, height: 28, fontSize: 11, letterSpacing: '.06em',
+                      border: '1px solid var(--rule)', cursor: 'pointer',
+                      background: p === page ? 'var(--ink)' : 'transparent',
+                      color: p === page ? 'var(--paper)' : 'var(--ink-2)',
+                      transition: 'all .15s',
+                    }}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="btn-secondary"
+                  style={{ padding: '4px 8px', opacity: page === totalPages ? 0.3 : 1 }}
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
             </div>
           </div>
         )}

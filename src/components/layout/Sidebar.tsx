@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, ClipboardList, Factory, AlertTriangle,
-  FileText, Brain, Settings, Smartphone,
+  FileText, Brain, Settings, Smartphone, X,
 } from 'lucide-react'
 import { useI18n } from '../../i18n'
 
@@ -16,17 +16,22 @@ const navItems = [
   { path: '/settings',    icon: Settings,        key: 'settings'         as const, code: '08' },
 ]
 
-export default function Sidebar() {
+interface SidebarProps {
+  open: boolean
+  onClose: () => void
+}
+
+export default function Sidebar({ open, onClose }: SidebarProps) {
   const { t } = useI18n()
   const location = useLocation()
 
   return (
     <aside
-      className="w-64 flex flex-col h-full fixed left-0 top-0 z-30"
+      className={`w-64 flex flex-col h-full fixed left-0 top-0 z-40 transition-transform duration-200 lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}
       style={{ background: '#15181a', color: '#cdd0cf' }}
     >
       {/* Brand mark */}
-      <div className="px-5 pt-6 pb-5" style={{ borderBottom: '1px solid #2a2d2f' }}>
+      <div className="px-5 pt-6 pb-5 flex items-center justify-between" style={{ borderBottom: '1px solid #2a2d2f' }}>
         <div className="flex items-center gap-3">
           <div style={{ width: 34, height: 34, border: '1px solid #44484a', position: 'relative', background: '#1d2022', flexShrink: 0 }}>
             <div style={{ position: 'absolute', inset: 6, background: '#b5532a' }} />
@@ -41,6 +46,14 @@ export default function Sidebar() {
             </div>
           </div>
         </div>
+        {/* Close button — mobile only */}
+        <button
+          onClick={onClose}
+          className="lg:hidden flex items-center justify-center"
+          style={{ color: '#7a7e80', background: 'transparent', border: 'none', cursor: 'pointer', padding: 4 }}
+        >
+          <X size={16} />
+        </button>
       </div>
 
       {/* Section tag */}
@@ -58,6 +71,7 @@ export default function Sidebar() {
             <NavLink
               key={path}
               to={path}
+              onClick={onClose}
               className={`sidebar-link ${isActive ? 'sidebar-link-active' : 'sidebar-link-inactive'}`}
             >
               <span className="mono" style={{ fontSize: 10, color: '#6a6e70', width: 18, flexShrink: 0 }}>{code}</span>
